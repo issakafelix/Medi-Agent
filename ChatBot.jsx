@@ -1613,114 +1613,22 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Header */}
         <header
-          className={`shrink-0 pt-[env(safe-area-inset-top)] bg-[var(--bg-primary)] border-b ${
-            isDarkMode ? 'border-neutral-900' : 'border-gray-200'
-          }`}
+          className={`shrink-0 pt-[env(safe-area-inset-top)] bg-[var(--bg-primary)]`}
         >
-          <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              {/* Mobile sidebar toggle */}
-              <button
-                type="button"
-                onClick={() => setIsSidebarOpen(true)}
-                className={`lg:hidden p-2 rounded-xl transition-all duration-200 ${
-                  isDarkMode
-                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                    : 'bg-gray-100 hover:bg-gray-200 text-black'
-                }`}
-                aria-label="Open chat history"
-              >
-                <Bars3Icon className="w-5 h-5" />
-              </button>
-              <img
-                src="/chat-con.png"
-                alt="Assistant avatar"
-                className="w-8 h-8 rounded-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-              <div className="min-w-0">
-                <h1
-                  className={`font-bold text-sm sm:text-base truncate ${
-                    isDarkMode ? 'text-white' : 'text-black'
-                  }`}
-                >
-                  <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'} hidden sm:inline`}>
-                    AI Diagnosis & Health Assistant
-                  </span>
-                  <span className="sm:hidden">
-                    {promptPresetKey === 'health' ? 'Health' : 'AI Assistant'}
-                  </span>
-                </h1>
-                <p
-                  className={`text-xs flex items-center gap-1.5 ${
-                    isDarkMode ? 'text-green-400' : 'text-teal-600'
-                  }`}
-                >
-                  <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></div>
-                  Online · Medical Diagnostician
-                </p>
-              </div>
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+               <button onClick={() => setIsSidebarOpen(true)} className={`lg:hidden p-1 -ml-1 ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
+                 <Bars3Icon className="w-6 h-6" />
+               </button>
+               <span className={`text-[20px] sm:text-[22px] font-normal tracking-tight ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
+                 Health Assistant
+               </span>
             </div>
-
-            {/* Section toggle (General / Health) */}
-            <div
-              className={`flex items-center rounded-xl border overflow-hidden flex-shrink-0 ${
-                isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-white'
-              }`}
-              aria-label="Assistant section"
-            >
-              <button
-                type="button"
-                onClick={() => setPromptPresetKey('default')}
-                className={`px-3 py-2 text-xs font-semibold transition-colors $
-                  {promptPresetKey !== 'health'
-                    ? isDarkMode
-                      ? 'bg-gray-700 text-white'
-                      : 'bg-gray-200 text-black'
-                    : isDarkMode
-                      ? 'text-gray-300 hover:bg-gray-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                aria-label="General section"
-              >
-                General
-              </button>
-              <button
-                type="button"
-                onClick={() => setPromptPresetKey('health')}
-                className={`px-3 py-2 text-xs font-semibold transition-colors $
-                  {promptPresetKey === 'health'
-                    ? isDarkMode
-                      ? 'bg-gray-700 text-white'
-                      : 'bg-gray-200 text-black'
-                    : isDarkMode
-                      ? 'text-gray-300 hover:bg-gray-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                aria-label="Health section"
-              >
-                Health
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              {/* Dark Mode Toggle */}
-              <button
-                onClick={toggleDarkMode}
-                className={`p-2 rounded-xl transition-all duration-200 ${
-                  isDarkMode
-                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                    : 'bg-gray-100 hover:bg-gray-200 text-black'
-                }`}
-                aria-label="Toggle dark mode"
-              >
-                {isDarkMode ? (
-                  <SunIcon className="w-5 h-5" />
-                ) : (
-                  <MoonIcon className="w-5 h-5" />
-                )}
-              </button>
+            <div className="flex items-center gap-3 relative">
+               <button onClick={toggleDarkMode} className={`px-2.5 py-1 text-[10px] font-bold tracking-wider rounded-full border ${isDarkMode ? "border-gray-700 bg-transparent text-gray-400 hover:bg-gray-800" : "border-gray-300 text-gray-500 hover:bg-gray-100"}`}>
+                 MODE
+               </button>
+               <img src="/chat-con.png" className={`w-8 h-8 rounded-full border ${isDarkMode ? "border-gray-700" : "border-gray-200"}`} alt="Profile" />
             </div>
           </div>
         </header>

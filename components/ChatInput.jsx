@@ -44,7 +44,6 @@ export default function ChatInput({
   };
 
   const handleKeyDown = (e) => {
-    // Send on Enter, but allow Shift+Enter for new lines
     if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
       e.preventDefault();
       handleSubmit(e);
@@ -55,224 +54,105 @@ export default function ChatInput({
 
   return (
     <div
-      className={`border-t bg-[var(--bg-primary)] ${
-        isDarkMode ? 'border-neutral-900' : 'border-gray-200'
-      } px-2 sm:px-6 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:pt-3 sm:pb-3`}
+      className={`px-3 sm:px-6 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:pt-4 sm:pb-6 bg-transparent flex justify-center`}
     >
-      <div className="mx-auto w-full max-w-3xl">
-      {isEditing && (
-        <div
-          className={`mb-2 flex items-center justify-between text-xs px-3 py-2 rounded-xl border ${
-            isDarkMode
-              ? 'border-yellow-600 bg-yellow-900 text-yellow-200'
-              : 'border-yellow-400 bg-yellow-100 text-yellow-800'
-          }`}
-        >
-          <span>✏️ Editing message</span>
-          <button
-            type="button"
-            onClick={() => onCancelEdit?.()}
-            disabled={isLoading}
-            className={`font-semibold transition-colors ${
-              isDarkMode
-                ? 'text-yellow-300 hover:text-yellow-100 disabled:text-gray-600'
-                : 'text-yellow-700 hover:text-yellow-900 disabled:text-gray-300'
-            }`}
-            aria-label="Cancel editing"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-        {/* Hidden file input (documents + images) */}
-        <input
-          ref={attachmentInputRef}
-          type="file"
-          accept="image/*,.txt,.md,.csv,.json,.log,application/pdf"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              if (String(file.type || '').startsWith('image/')) {
-                onUploadImage?.(file);
-              } else {
-                onUploadDocument?.(file);
+      <div className={`w-full max-w-3xl flex flex-col p-3 rounded-[32px] transition-colors duration-200 ${
+        isDarkMode ? 'bg-[#1e1f22]' : 'bg-gray-100'
+      }`}>
+        <form onSubmit={handleSubmit} className="flex flex-col">
+          <input
+            ref={attachmentInputRef}
+            type="file"
+            accept="image/*,.txt,.md,.csv,.json,.log,application/pdf"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (String(file.type || '').startsWith('image/')) {
+                  onUploadImage?.(file);
+                } else {
+                  onUploadDocument?.(file);
+                }
               }
-            }
-            e.target.value = '';
-          }}
-        />
+              e.target.value = '';
+            }}
+          />
 
-        <div className="flex items-end gap-2">
-          {/* Plus button (attachments) */}
-          <button
-            type="button"
-            onClick={handlePickAttachment}
-            disabled={isLoading || isListening}
-            className={`p-2 sm:p-2.5 rounded-full transition-all duration-200 flex-shrink-0 border ${
-              isDarkMode
-                ? 'border-gray-700 bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:text-gray-600'
-                : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-100 disabled:text-gray-300'
-            }`}
-            aria-label="Add attachment"
-            title="Attach an image or document"
-          >
-            <PlusIcon className="w-5 h-5" />
-          </button>
-
-          {/* Input pill */}
-          <div
-            className={`flex-1 min-w-0 flex flex-col rounded-3xl border transition-all duration-200 ${
-              isListening
-                ? 'border-red-500 ring-2 ring-red-500/30'
-                : isDarkMode
-                  ? 'bg-gray-700 border-gray-600 focus-within:border-teal-400 focus-within:ring-1 focus-within:ring-teal-400/50'
-                  : 'bg-gray-100 border-gray-200 focus-within:border-teal-400 focus-within:ring-1 focus-within:ring-teal-400/50'
-            }`}
-          >
-            <div className="flex items-end gap-2 px-3 sm:px-4 py-2 sm:py-2.5">
-          {/* Live transcript display while listening */}
-          {isListening && liveTranscript && (
-            <div className={`text-xs mb-1 italic ${isDarkMode ? 'text-red-300' : 'text-red-600'}`}>
-              🎤 {liveTranscript}
+          {isEditing && (
+            <div className={`mb-2 mx-2 flex flex-row justify-between items-center text-xs px-3 py-1.5 rounded-xl ${
+              isDarkMode ? 'bg-yellow-900/30 text-yellow-500' : 'bg-yellow-100 text-yellow-800'
+            }`}>
+              <span>✏️ Editing message</span>
+              <button type="button" onClick={onCancelEdit} className="font-semibold hover:underline">Cancel</button>
             </div>
           )}
-          {isListening && !liveTranscript && (
-            <div className={`text-xs mb-1 italic ${isDarkMode ? 'text-red-300' : 'text-red-600'}`}>
-              🎤 Listening...
+
+          {isListening && (
+            <div className={`text-xs mx-3 mb-2 italic ${isDarkMode ? 'text-red-400' : 'text-red-500'}`}>
+              🎤 {liveTranscript || 'Listening...'}
             </div>
           )}
+
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
-              isListening
-                ? 'Speaking...'
-                : isImageMode
-                  ? 'Describe the image you want...'
-                  : 'Ask anything'
+              isListening ? 'Speak now...' : isImageMode ? 'Describe the image...' : 'Ask Health Assistant'
             }
             disabled={isLoading || isListening}
             rows="1"
-            className={`flex-1 min-w-0 bg-transparent border-0 outline-none resize-none text-[16px] sm:text-sm ${
-              isDarkMode ? 'text-white placeholder-gray-400' : 'text-black placeholder-gray-500'
+            style={{ maxHeight: '160px' }}
+            className={`w-full bg-transparent border-0 outline-none resize-none px-3 pt-2 pb-1 text-[16px] sm:text-base ${
+              isDarkMode ? 'text-white placeholder-gray-500' : 'text-gray-900 placeholder-gray-500'
             } disabled:opacity-50`}
-            aria-label="Message input"
-            style={{ maxHeight: '120px' }}
           />
-            {/* Right-side actions: mic/voice when empty, send when typing */}
-            <div className="flex items-center gap-1 flex-shrink-0">
+
+          <div className="flex items-center justify-between mt-1 px-1">
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={handlePickAttachment}
+                disabled={isLoading || isListening}
+                className={`p-2.5 rounded-full transition-colors ${
+                  isDarkMode ? 'text-gray-400 hover:bg-gray-700/50 hover:text-gray-200' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                }`}
+              >
+                <PlusIcon className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-2">
               {!input.trim() ? (
                 <>
                   <button
                     type="button"
                     onClick={() => onVoiceInput?.()}
                     disabled={isLoading}
-                    className={`p-2 rounded-full transition-all duration-200 ${
+                    className={`p-2.5 rounded-full transition-colors ${
                       isListening
-                        ? 'bg-red-500 text-white animate-pulse'
-                        : isDarkMode
-                          ? 'bg-white text-black hover:bg-gray-100 disabled:opacity-60'
-                          : 'hover:bg-gray-200 text-gray-600 disabled:text-gray-300'
+                        ? 'bg-red-500/20 text-red-500 animate-pulse'
+                        : isDarkMode ? 'text-gray-400 hover:bg-gray-700/50 hover:text-gray-200' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
                     }`}
-                    aria-label={isListening ? 'Stop listening' : 'Voice input'}
-                    title={isListening ? 'Click to stop' : 'Click to speak'}
                   >
                     <MicrophoneIcon className="w-5 h-5" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => onVoiceInput?.()}
-                    disabled={isLoading}
-                    className={`p-2 rounded-full transition-all duration-200 ${
-                      isListening
-                        ? 'bg-red-500 text-white animate-pulse'
-                        : isDarkMode
-                          ? 'bg-white text-black hover:bg-gray-100 disabled:opacity-60'
-                          : 'hover:bg-gray-200 text-gray-600 disabled:text-gray-300'
-                    }`}
-                    aria-label={isListening ? 'Stop voice mode' : 'Voice mode'}
-                    title={isListening ? 'Click to stop' : 'Voice mode'}
-                  >
-                    <SpeakerWaveIcon className="w-5 h-5" />
                   </button>
                 </>
               ) : (
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className={`p-2 rounded-full transition-all duration-200 font-semibold ${
-                    input.trim() && !isLoading
-                      ? 'bg-teal-600 hover:bg-teal-700 text-white'
-                      : isDarkMode
-                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  className={`p-2.5 rounded-full transition-colors ${
+                    isDarkMode ? 'text-white hover:bg-gray-700/50' : 'text-gray-900 hover:bg-gray-200'
                   }`}
-                  aria-label="Send message"
-                  title="Send"
                 >
                   <PaperAirplaneIcon className="w-5 h-5" />
                 </button>
               )}
             </div>
-            </div>
           </div>
-        </div>
-
-        {/* Mode Toggle (kept, but secondary) */}
-        {typeof onInputModeChange === 'function' && (
-          <div
-            className={`hidden sm:flex items-center justify-center rounded-xl border overflow-hidden self-center ${
-              isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-white'
-            }`}
-            aria-label="Input mode"
-          >
-            <button
-              type="button"
-              onClick={() => onInputModeChange?.('text')}
-              disabled={isLoading || isListening}
-              className={`px-3 py-2 text-xs font-semibold transition-colors ${
-                !isImageMode
-                  ? 'bg-teal-600 text-white'
-                  : isDarkMode
-                    ? 'text-gray-300 hover:bg-gray-700'
-                    : 'text-gray-600 hover:bg-gray-100'
-              }`}
-              aria-label="Text mode"
-            >
-              Text
-            </button>
-            <button
-              type="button"
-              onClick={() => onInputModeChange?.('image')}
-              disabled={isLoading || isListening}
-              className={`px-3 py-2 text-xs font-semibold transition-colors ${
-                isImageMode
-                  ? 'bg-teal-600 text-white'
-                  : isDarkMode
-                    ? 'text-gray-300 hover:bg-gray-700'
-                    : 'text-gray-600 hover:bg-gray-100'
-              }`}
-              aria-label="Image mode"
-            >
-              Image
-            </button>
-          </div>
-        )}
-      </form>
-
-      {/* Helper Text - hidden on mobile */}
-      <p
-        className={`hidden sm:block text-xs mt-2 text-center ${
-          isDarkMode ? 'text-gray-400' : 'text-gray-500'
-        }`}
-      >
-        Press Enter to send, Shift+Enter for new line
-      </p>
+        </form>
       </div>
     </div>
   );
