@@ -1538,7 +1538,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
       className="fixed inset-0 flex bg-[var(--bg-primary)] overflow-hidden"
     >
       {/* Sidebar (desktop docked) */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block shrink-0">
         <ChatHistory
           isDarkMode={isDarkMode}
           conversations={chats}
@@ -1613,7 +1613,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Header */}
         <header
-          className={`bg-[var(--bg-primary)] border-b ${
+          className={`shrink-0 pt-[env(safe-area-inset-top)] bg-[var(--bg-primary)] border-b ${
             isDarkMode ? 'border-neutral-900' : 'border-gray-200'
           }`}
         >
