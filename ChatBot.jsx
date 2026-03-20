@@ -1535,7 +1535,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
 
   return (
     <div
-      className="flex h-screen min-h-[100dvh] bg-[var(--bg-primary)]"
+      className="fixed inset-0 flex bg-[var(--bg-primary)] overflow-hidden"
     >
       {/* Sidebar (desktop docked) */}
       <div className="hidden lg:block">

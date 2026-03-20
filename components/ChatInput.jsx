@@ -57,7 +57,7 @@ export default function ChatInput({
     <div
       className={`border-t bg-[var(--bg-primary)] ${
         isDarkMode ? 'border-neutral-900' : 'border-gray-200'
-      } px-4 sm:px-6 py-2 sm:py-3`}
+      } px-2 sm:px-6 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:pt-3 sm:pb-3`}
     >
       <div className="mx-auto w-full max-w-3xl">
       {isEditing && (
@@ -127,8 +127,8 @@ export default function ChatInput({
               isListening
                 ? 'border-red-500 ring-2 ring-red-500/30'
                 : isDarkMode
-                  ? 'bg-gray-700 border-gray-600 focus-within:border-gray-400'
-                  : 'bg-gray-100 border-gray-200 focus-within:border-gray-300'
+                  ? 'bg-gray-700 border-gray-600 focus-within:border-teal-400 focus-within:ring-1 focus-within:ring-teal-400/50'
+                  : 'bg-gray-100 border-gray-200 focus-within:border-teal-400 focus-within:ring-1 focus-within:ring-teal-400/50'
             }`}
           >
             <div className="flex items-end gap-2 px-3 sm:px-4 py-2 sm:py-2.5">
@@ -157,7 +157,7 @@ export default function ChatInput({
             }
             disabled={isLoading || isListening}
             rows="1"
-            className={`flex-1 min-w-0 bg-transparent border-0 outline-none resize-none text-sm ${
+            className={`flex-1 min-w-0 bg-transparent border-0 outline-none resize-none text-[16px] sm:text-sm ${
               isDarkMode ? 'text-white placeholder-gray-400' : 'text-black placeholder-gray-500'
             } disabled:opacity-50`}
             aria-label="Message input"
