@@ -158,7 +158,7 @@ export default function ChatInput({
             disabled={isLoading || isListening}
             rows="1"
             className={`flex-1 min-w-0 bg-transparent border-0 outline-none resize-none text-sm ${
-              isDarkMode ? 'text-white placeholder-gray-400' : 'text-gray-900 placeholder-gray-500'
+              isDarkMode ? 'text-white placeholder-gray-400' : 'text-black placeholder-gray-500'
             } disabled:opacity-50`}
             aria-label="Message input"
             style={{ maxHeight: '120px' }}
@@ -175,7 +175,7 @@ export default function ChatInput({
                       isListening
                         ? 'bg-red-500 text-white animate-pulse'
                         : isDarkMode
-                          ? 'bg-white text-gray-900 hover:bg-gray-100 disabled:opacity-60'
+                          ? 'bg-white text-black hover:bg-gray-100 disabled:opacity-60'
                           : 'hover:bg-gray-200 text-gray-600 disabled:text-gray-300'
                     }`}
                     aria-label={isListening ? 'Stop listening' : 'Voice input'}
@@ -192,7 +192,7 @@ export default function ChatInput({
                       isListening
                         ? 'bg-red-500 text-white animate-pulse'
                         : isDarkMode
-                          ? 'bg-white text-gray-900 hover:bg-gray-100 disabled:opacity-60'
+                          ? 'bg-white text-black hover:bg-gray-100 disabled:opacity-60'
                           : 'hover:bg-gray-200 text-gray-600 disabled:text-gray-300'
                     }`}
                     aria-label={isListening ? 'Stop voice mode' : 'Voice mode'}
@@ -207,7 +207,7 @@ export default function ChatInput({
                   disabled={!input.trim() || isLoading}
                   className={`p-2 rounded-full transition-all duration-200 font-semibold ${
                     input.trim() && !isLoading
-                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                      ? 'bg-teal-600 hover:bg-teal-700 text-white'
                       : isDarkMode
                         ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
@@ -237,7 +237,7 @@ export default function ChatInput({
               disabled={isLoading || isListening}
               className={`px-3 py-2 text-xs font-semibold transition-colors ${
                 !isImageMode
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-teal-600 text-white'
                   : isDarkMode
                     ? 'text-gray-300 hover:bg-gray-700'
                     : 'text-gray-600 hover:bg-gray-100'
@@ -252,7 +252,7 @@ export default function ChatInput({
               disabled={isLoading || isListening}
               className={`px-3 py-2 text-xs font-semibold transition-colors ${
                 isImageMode
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-teal-600 text-white'
                   : isDarkMode
                     ? 'text-gray-300 hover:bg-gray-700'
                     : 'text-gray-600 hover:bg-gray-100'

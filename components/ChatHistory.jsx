@@ -42,7 +42,7 @@ export default function ChatHistory({
         className={`m-3 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 border ${
           isDarkMode
             ? 'bg-gray-800 hover:bg-gray-700 text-white border-gray-700'
-            : 'bg-white hover:bg-gray-100 text-gray-900 border-gray-300'
+            : 'bg-white hover:bg-gray-100 text-black border-gray-300'
         }`}
         aria-label="Start new conversation"
       >
@@ -57,7 +57,7 @@ export default function ChatHistory({
           className={`mx-3 -mt-1 mb-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border ${
             isDarkMode
               ? 'bg-gray-900 hover:bg-gray-800 text-gray-200 border-gray-800'
-              : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-200'
+              : 'bg-white hover:bg-gray-100 text-black border-gray-200'
           }`}
           aria-label="Delete all chats"
         >
@@ -92,10 +92,10 @@ export default function ChatHistory({
                   currentChatId === chat.id
                     ? isDarkMode
                       ? 'bg-gray-800 text-white'
-                      : 'bg-gray-200 text-gray-900'
+                      : 'bg-gray-200 text-black'
                     : isDarkMode
                       ? 'text-gray-300 hover:bg-gray-700'
-                      : 'text-gray-700 hover:bg-white'
+                      : 'text-black hover:bg-white'
                 }`}
                 aria-label={`Open chat: ${chat.title || 'Chat'}`}
               >
@@ -122,7 +122,7 @@ export default function ChatHistory({
                   className={`absolute right-2 top-2 p-2 rounded-lg transition-opacity ${
                     isDarkMode
                       ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-500 hover:text-black hover:bg-gray-100'
                   } opacity-0 group-hover:opacity-100 focus:opacity-100`}
                   aria-label={`Delete chat: ${chat.title || 'Chat'}`}
                 >

@@ -51,7 +51,7 @@ export default function KeyboardShortcutsModal({ isOpen, onClose, isDarkMode }) 
             <CommandLineIcon className={`w-5 h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-500'}`} />
             <h2
               id="shortcuts-title"
-              className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+              className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-black'}`}
             >
               Keyboard Shortcuts
             </h2>
@@ -62,7 +62,7 @@ export default function KeyboardShortcutsModal({ isOpen, onClose, isDarkMode }) 
             className={`p-1.5 rounded-lg transition-colors ${
               isDarkMode
                 ? 'hover:bg-neutral-700 text-neutral-400 hover:text-neutral-200'
-                : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
+                : 'hover:bg-gray-100 text-gray-500 hover:text-black'
             }`}
             aria-label="Close"
           >
@@ -84,7 +84,7 @@ export default function KeyboardShortcutsModal({ isOpen, onClose, isDarkMode }) 
                       className={`px-2 py-1 text-xs font-mono rounded border ${
                         isDarkMode
                           ? 'bg-neutral-700 border-neutral-600 text-neutral-200'
-                          : 'bg-gray-100 border-gray-300 text-gray-700'
+                          : 'bg-gray-100 border-gray-300 text-black'
                       }`}
                     >
                       {key}

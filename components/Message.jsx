@@ -50,19 +50,22 @@ export default function Message({
 
   return (
     <div
-      className={`w-full animate-fadeIn motion-reduce:animate-none transition-colors duration-150 ease-out bg-transparent ${
-        isDarkMode ? 'border-b border-neutral-900' : 'border-b border-gray-200'
-      }`}
+      className={`w-full flex ${
+        isBot ? 'justify-start' : 'justify-end'
+      } animate-slideIn my-4 sm:my-6 px-3 sm:px-6`}
     >
-      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
-        <div className="flex gap-3 py-5 sm:py-6">
+      <div 
+        className={`flex max-w-[90%] sm:max-w-[80%] md:max-w-3xl flex-col gap-1 group ${
+          isBot ? 'items-start' : 'items-end'
+        }`}
+      >
+        <div className={`flex items-end gap-2 sm:gap-3 ${isBot ? 'flex-row' : 'flex-row-reverse'}`}>
           {/* Avatar */}
           <div
-            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-gray-200'
+            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-sm flex items-center justify-center flex-shrink-0 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white border border-gray-100'
             }`}
             role="img"
-            aria-label={isBot ? 'Assistant' : 'User'}
           >
             {isBot ? (
               <img
@@ -70,233 +73,135 @@ export default function Message({
                 alt="Assistant avatar"
                 className="w-full h-full rounded-full object-cover"
                 loading="lazy"
-                decoding="async"
               />
             ) : (
-              <span className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                {message.avatar || 'You'}
+              <span className={`text-sm sm:text-base font-medium ${isDarkMode ? 'text-teal-400' : 'text-teal-600'}`}>
+                {message.avatar || 'U'}
               </span>
             )}
           </div>
 
-          {/* Message Content */}
-          <div className="flex-1 min-w-0 flex flex-col gap-2 group">
-            <div
-              className={`text-sm leading-relaxed break-words ${
-                hasError
-                  ? isDarkMode
-                    ? 'text-red-200'
-                    : 'text-red-800'
-                  : isDarkMode
-                    ? 'text-gray-100'
-                    : 'text-gray-900'
+          {/* Message Bubble */}
+          <div
+            className={`relative px-4 sm:px-5 py-3 sm:py-4 shadow-sm text-[15px] sm:text-base leading-relaxed break-words
+              ${hasError ? 'border-2 border-red-500' : ''}
+              ${
+                isBot 
+                  ? isDarkMode 
+                    ? 'bg-gray-800 text-gray-100 rounded-tr-2xl rounded-tl-2xl rounded-br-2xl rounded-bl-sm border border-gray-700' 
+                    : 'bg-white text-gray-800 rounded-tr-3xl rounded-tl-3xl rounded-br-3xl rounded-bl-sm border border-gray-100'
+                  : 'bg-teal-600 text-white rounded-tr-3xl rounded-tl-3xl rounded-bl-3xl rounded-br-sm'
               }`}
-            >
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                urlTransform={urlTransform}
-                components={{
-                  p: ({ children }) => (
-                    <p className="whitespace-pre-wrap leading-7 text-[15px]">
-                      {children}
-                    </p>
-                  ),
-                  strong: ({ children }) => (
-                    <strong className="font-semibold">{children}</strong>
-                  ),
-                  em: ({ children }) => <em className="italic">{children}</em>,
-                  ul: ({ children }) => (
-                    <ul className="list-disc pl-6 space-y-1 my-2">{children}</ul>
-                  ),
-                  ol: ({ children }) => (
-                    <ol className="list-decimal pl-6 space-y-1 my-2">{children}</ol>
-                  ),
-                  li: ({ children }) => (
-                    <li className="leading-7 text-[15px]">{children}</li>
-                  ),
-                  a: ({ children, href }) => (
-                    <a
-                      href={href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={isDarkMode ? 'text-blue-400 underline underline-offset-2' : 'text-blue-600 underline underline-offset-2'}
-                    >
-                      {children}
-                    </a>
-                  ),
-                  img: ({ src, alt }) => (
-                    <img
-                      src={src}
-                      alt={alt || 'Generated image'}
-                      className={`max-w-full h-auto rounded-lg border my-2 ${
-                        isDarkMode ? 'border-gray-700' : 'border-gray-200'
-                      }`}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ),
-                  hr: () => (
-                    <hr className={isDarkMode ? 'border-gray-700 my-4' : 'border-gray-200 my-4'} />
-                  ),
-                  blockquote: ({ children }) => (
-                    <blockquote
-                      className={`border-l-4 pl-4 my-3 ${
-                        isDarkMode ? 'border-gray-700 text-gray-200' : 'border-gray-300 text-gray-700'
-                      }`}
-                    >
-                      {children}
-                    </blockquote>
-                  ),
-                  code: ({ inline, className, children }) => {
-                    const raw = normalizeCodeChildren(children).replace(/\n$/, '');
-                    const match = /language-(\w+)/.exec(className || '');
-                    const language = match?.[1] || 'text';
-
-                    if (!inline) {
-                      return <CodeBlock language={language} code={raw} isDarkMode={isDarkMode} />;
-                    }
-
-                    return (
-                      <code
-                        className={`px-1.5 py-0.5 rounded-md text-[13px] ${
-                          isDarkMode
-                            ? 'bg-gray-700 text-gray-100'
-                            : 'bg-gray-100 text-gray-900'
-                        }`}
-                      >
-                        {raw}
-                      </code>
-                    );
-                  },
-                }}
-              >
-                {String(message.text ?? '')}
-              </ReactMarkdown>
-            </div>
-
-          {/* Error State */}
-          {hasError && (
-            <div className="flex items-center gap-2">
-              <ExclamationTriangleIcon className="w-4 h-4 text-red-500 flex-shrink-0" />
-              <span className={`text-xs ${isDarkMode ? 'text-red-200' : 'text-red-700'}`}>
-                Failed to send
-              </span>
-              <button
-                onClick={() => onRetry()}
-                className={`text-xs font-semibold hover:underline ml-auto ${
-                  isDarkMode ? 'text-red-200' : 'text-red-700'
-                }`}
-                aria-label="Retry sending message"
-              >
-                Retry
-              </button>
-            </div>
-          )}
-
-          {/* Actions */}
-          {!hasError && ((isBot && (onCopy || onRegenerate || onLike || onDislike)) || (!isBot && (onEdit || onCopy))) && (
-            <div className="flex flex-wrap items-center gap-1 sm:gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-              {!isBot && onEdit && (
-                <button
-                  type="button"
-                  onClick={onEdit}
-                  className={`inline-flex items-center gap-1 text-xs font-semibold transition-colors p-1 rounded ${
-                    isDarkMode
-                      ? 'text-neutral-300 hover:text-white hover:bg-gray-700'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-                  aria-label="Edit message"
-                >
-                  <PencilSquareIcon className="w-4 h-4" />
-                  <span className="hidden sm:inline">Edit</span>
-                </button>
-              )}
-
-              {onCopy && (
-                <button
-                  type="button"
-                  onClick={onCopy}
-                  className={`inline-flex items-center gap-1 text-xs font-semibold transition-colors p-1 rounded ${
-                    isDarkMode
-                      ? isBot
-                        ? 'text-neutral-400 hover:text-neutral-200 hover:bg-gray-700'
-                        : 'text-neutral-300 hover:text-white hover:bg-gray-700'
-                      : isBot
-                        ? 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-                  aria-label="Copy message"
-                >
-                  <ClipboardIcon className="w-4 h-4" />
-                  <span className="hidden sm:inline">Copy</span>
-                </button>
-              )}
-
-              {isBot && onRegenerate && (
-                <button
-                  type="button"
-                  onClick={onRegenerate}
-                  className={`inline-flex items-center gap-1 text-xs font-semibold transition-colors p-1 rounded ${
-                    isDarkMode
-                      ? 'text-neutral-400 hover:text-neutral-200 hover:bg-gray-700'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-                  aria-label="Regenerate response"
-                >
-                  <ArrowPathIcon className="w-4 h-4" />
-                  <span className="hidden sm:inline">Regenerate</span>
-                </button>
-              )}
-
-              {isBot && onLike && (
-                <button
-                  type="button"
-                  onClick={onLike}
-                  className={`inline-flex items-center gap-1 text-xs font-semibold transition-colors p-1 rounded ${
-                    rating === 1
-                      ? isDarkMode
-                        ? 'text-green-300'
-                        : 'text-green-700'
-                      : isDarkMode
-                        ? 'text-neutral-400 hover:text-neutral-200 hover:bg-gray-700'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-                  aria-label="Like response"
-                >
-                  <HandThumbUpIcon className="w-4 h-4" />
-                </button>
-              )}
-
-              {isBot && onDislike && (
-                <button
-                  type="button"
-                  onClick={onDislike}
-                  className={`inline-flex items-center gap-1 text-xs font-semibold transition-colors p-1 rounded ${
-                    rating === -1
-                      ? isDarkMode
-                        ? 'text-red-300'
-                        : 'text-red-700'
-                      : isDarkMode
-                        ? 'text-neutral-400 hover:text-neutral-200 hover:bg-gray-700'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-                  aria-label="Dislike response"
-                >
-                  <HandThumbDownIcon className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Timestamp */}
-          <span
-            className={`text-xs ${
-              isDarkMode ? 'text-neutral-500' : 'text-gray-400'
-            } opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity`}
           >
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              urlTransform={urlTransform}
+              components={{
+                p: ({ children }) => (
+                  <p className="whitespace-pre-wrap mb-2 last:mb-0">
+                    {children}
+                  </p>
+                ),
+                strong: ({ children }) => (
+                  <strong className="font-semibold">{children}</strong>
+                ),
+                em: ({ children }) => <em className="italic">{children}</em>,
+                ul: ({ children }) => (
+                  <ul className="list-disc pl-5 space-y-1 mb-3">{children}</ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="list-decimal pl-5 space-y-1 mb-3">{children}</ol>
+                ),
+                li: ({ children }) => (
+                  <li className="mb-1">{children}</li>
+                ),
+                a: ({ children, href }) => (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline underline-offset-2 hover:opacity-80 font-medium"
+                  >
+                    {children}
+                  </a>
+                ),
+                code: ({ inline, className, children }) => {
+                  const raw = normalizeCodeChildren(children).replace(/\n$/, '');
+                  const match = /language-(\w+)/.exec(className || '');
+                  const language = match?.[1] || 'text';
+
+                  if (!inline) {
+                    return <div className="my-3 overflow-hidden rounded-xl shadow-sm"><CodeBlock language={language} code={raw} isDarkMode={isDarkMode} /></div>;
+                  }
+
+                  return (
+                    <code
+                      className={`px-1.5 py-0.5 mx-0.5 rounded-md text-[0.9em] font-mono ${
+                        isBot 
+                          ? isDarkMode ? 'bg-gray-700 text-teal-300' : 'bg-gray-100 text-teal-600'
+                          : 'bg-teal-700 text-white'
+                      }`}
+                    >
+                      {raw}
+                    </code>
+                  );
+                },
+              }}
+            >
+              {String(message.text ?? '')}
+            </ReactMarkdown>
+
+            {/* Error Message */}
+            {hasError && (
+              <div className="flex items-center gap-2 mt-3 pt-2 border-t border-red-200/50">
+                <ExclamationTriangleIcon className="w-4 h-4 text-red-500" />
+                <span className="text-xs text-red-500 font-medium">Failed to send</span>
+                <button
+                  onClick={() => onRetry()}
+                  className="text-xs font-bold text-red-500 hover:text-red-700 hover:underline ml-auto"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer Actions & Timestamp */}
+        <div className={`flex items-center gap-3 mt-1 px-12 ${isBot ? 'justify-start' : 'justify-end'}`}>
+          <span className={`text-[11px] font-medium transition-opacity ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
             {formatTime(message?.timestamp)}
           </span>
-        </div>
+
+          {!hasError && ((isBot && (onCopy || onRegenerate || onLike || onDislike)) || (!isBot && (onEdit || onCopy))) && (
+            <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>
+              {!isBot && onEdit && (
+                <button onClick={onEdit} className="p-1 hover:text-teal-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" title="Edit">
+                  <PencilSquareIcon className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {onCopy && (
+                <button onClick={onCopy} className="p-1 hover:text-teal-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" title="Copy">
+                  <ClipboardIcon className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {isBot && onRegenerate && (
+                <button onClick={onRegenerate} className="p-1 hover:text-teal-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" title="Regenerate">
+                  <ArrowPathIcon className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {isBot && onLike && (
+                <button onClick={onLike} className={`p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors ${rating === 1 ? 'text-teal-500' : 'hover:text-teal-500'}`} title="Helpful">
+                  <HandThumbUpIcon className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {isBot && onDislike && (
+                <button onClick={onDislike} className={`p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors ${rating === -1 ? 'text-red-500' : 'hover:text-red-500'}`} title="Not Helpful">
+                  <HandThumbDownIcon className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

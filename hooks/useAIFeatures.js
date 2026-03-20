@@ -198,56 +198,35 @@ export function useSuggestedPrompts(lastBotMessage, lastUserMessage) {
     const userText = lastUserMessage?.text?.toLowerCase() || '';
     const newSuggestions = [];
 
-    // Code-related suggestions
-    if (text.includes('```') || text.includes('function') || text.includes('class ') || text.includes('const ') || text.includes('def ')) {
-      newSuggestions.push('Analyze time & space complexity');
-      newSuggestions.push('Add error handling and edge cases');
-      newSuggestions.push('Write unit tests for this');
-      newSuggestions.push('Show a more optimized version');
+    // Symptom descriptions
+    if (text.includes('symptom') || text.includes('pain') || text.includes('fever') || text.includes('ache')) {
+      newSuggestions.push('Are there any other common symptoms I should look out for?');
+      newSuggestions.push('How long do these symptoms typically last?');
+      newSuggestions.push('When should I see a doctor immediately?');
     }
-    // System design / architecture
-    else if (text.includes('database') || text.includes('api') || text.includes('server') || text.includes('architecture') || text.includes('microservice')) {
-      newSuggestions.push('How would this scale to 1M users?');
-      newSuggestions.push('What are the security considerations?');
-      newSuggestions.push('Show the database schema design');
-      newSuggestions.push('Add caching and optimization');
+    // Medicine / Treatment
+    else if (text.includes('medication') || text.includes('treatment') || text.includes('ibuprofen') || text.includes('dose')) {
+      newSuggestions.push('What are the potential side effects of these medications?');
+      newSuggestions.push('Are there any natural home remedies I can try?');
+      newSuggestions.push('Can I take this medication with food?');
     }
-    // Error / debugging context
-    else if (text.includes('error') || text.includes('bug') || text.includes('issue') || text.includes('fix') || userText.includes('error')) {
-      newSuggestions.push('What causes this error?');
-      newSuggestions.push('How can I prevent this in the future?');
-      newSuggestions.push('Show debugging steps');
+    // Diagnosis / Condition
+    else if (text.includes('condition') || text.includes('infection') || text.includes('disease') || text.includes('virus')) {
+      newSuggestions.push('How is this condition officially diagnosed?');
+      newSuggestions.push('Is this condition contagious?');
+      newSuggestions.push('What are the long-term effects of this?');
     }
-    // Algorithm / DSA context
-    else if (text.includes('o(') || text.includes('complexity') || text.includes('algorithm') || text.includes('array') || text.includes('tree')) {
-      newSuggestions.push('Can we optimize further?');
-      newSuggestions.push('What about edge cases?');
-      newSuggestions.push('Show alternative approaches');
-      newSuggestions.push('Explain the intuition behind this');
+    // Hospital / Doctor
+    else if (text.includes('hospital') || text.includes('clinic') || text.includes('specialist') || text.includes('doctor')) {
+      newSuggestions.push('What type of specialist should I see for this?');
+      newSuggestions.push('What should I bring to my doctor appointment?');
+      newSuggestions.push('Are there urgent care clinics you recommend nearby?');
     }
-    // Security context
-    else if (text.includes('security') || text.includes('vulnerability') || text.includes('authentication') || text.includes('encrypt')) {
-      newSuggestions.push('What are common attack vectors?');
-      newSuggestions.push('Show secure implementation');
-      newSuggestions.push('How to test for vulnerabilities?');
-    }
-    // DevOps context
-    else if (text.includes('docker') || text.includes('kubernetes') || text.includes('deploy') || text.includes('ci/cd') || text.includes('pipeline')) {
-      newSuggestions.push('Show production-ready config');
-      newSuggestions.push('Add monitoring and logging');
-      newSuggestions.push('What about high availability?');
-    }
-    // List/comparison suggestions
-    else if (text.includes('1.') || text.includes('•') || text.includes('pros') || text.includes('cons')) {
-      newSuggestions.push('Which would you recommend and why?');
-      newSuggestions.push('Dive deeper into the trade-offs');
-      newSuggestions.push('Show implementation examples');
-    }
-    // General programming fallback
+    // General medical fallback
     else {
-      newSuggestions.push('Show me a code example');
-      newSuggestions.push('What are best practices for this?');
-      newSuggestions.push('How is this used in production?');
+      newSuggestions.push('Can you explain that in simpler terms?');
+      newSuggestions.push('What are the best preventative measures I can take?');
+      newSuggestions.push('How does diet or lifestyle affect this?');
     }
 
     // Limit to 3 suggestions

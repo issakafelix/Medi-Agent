@@ -32,53 +32,28 @@ const EMPTY_MESSAGES = [];
 const PROMPT_PRESETS = [
   { 
     key: 'default', 
-    label: '💻 Full-Stack Dev', 
+    label: '🩺 General Physician', 
     system: '' 
   },
   {
-    key: 'health',
-    label: '🩺 Health',
-    system: 'health'
+    key: 'pediatrics',
+    label: '👶 Pediatrics',
+    system: 'pediatrics'
   },
   { 
-    key: 'senior-engineer', 
-    label: '🏗️ Senior Engineer', 
-    system: 'senior-engineer' 
+    key: 'neurology', 
+    label: '🧠 Neurology', 
+    system: 'neurology' 
   },
   { 
-    key: 'code-reviewer', 
-    label: '🔍 Code Reviewer', 
-    system: 'code-reviewer' 
+    key: 'orthopedics', 
+    label: '🦴 Orthopedics', 
+    system: 'orthopedics' 
   },
   { 
-    key: 'architect', 
-    label: '📐 System Architect', 
-    system: 'architect' 
-  },
-  { 
-    key: 'devops', 
-    label: '🚀 DevOps Engineer', 
-    system: 'devops' 
-  },
-  { 
-    key: 'security', 
-    label: '🔒 Security Expert', 
-    system: 'security' 
-  },
-  { 
-    key: 'debug', 
-    label: '🐛 Debug Assistant', 
-    system: 'debug' 
-  },
-  { 
-    key: 'dsa', 
-    label: '📊 DSA & Algorithms', 
-    system: 'dsa' 
-  },
-  { 
-    key: 'interview', 
-    label: '🎯 Interview Prep', 
-    system: 'interview' 
+    key: 'pharmacy', 
+    label: '💊 Pharmacy Expert', 
+    system: 'pharmacy' 
   },
 ];
 
@@ -145,10 +120,10 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
     () => [
       {
         id: 1,
-        text: "👋 Hi! I'm your AI research assistant.\n\nI’m built to help deeply in **two areas**: **coding/computer research** and **health research & guidance**.\n\nPick *General* or *Health* in the header, or just ask your question.",
+        text: "👋 Hello! I'm your AI Medical & Diagnosis Assistant.\n\nPlease describe your symptoms in detail (including severity and duration), and I will help analyze potential conditions, suggest treatment steps, and recommend suitable hospitals or specialists.\n\n*Disclaimer: I am an AI, not a doctor. In case of a medical emergency, please call your local emergency services immediately.*",
         sender: 'bot',
         timestamp: new Date(Date.now() - 60000),
-        avatar: '🤖',
+        avatar: '🏥',
       },
     ],
     []
@@ -254,6 +229,33 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
   );
   const suggestedFollowUps = useSuggestedPrompts(lastBotMessage, lastUserMessage);
   
+
+  useEffect(() => {
+    async function initHistory() {
+      try {
+        const result = await getConversations(50);
+        if (result && result.conversations && result.conversations.length > 0) {
+          const loadedChats = result.conversations.map((c, i) => ({
+            id: 10000 + i,
+            title: c.title || 'Chat',
+            updatedAt: new Date(c.updated_at),
+            conversationId: c.id,
+            backendLoaded: false,
+            messages: []
+          }));
+          setChats(prev => {
+            const currentNew = prev.filter(p => p.id === currentChatId && !p.conversationId);
+            return currentNew.length ? [...currentNew, ...loadedChats] : loadedChats;
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load history', err);
+      }
+    }
+    initHistory();
+  }, []); // Only run once on mount
+
+
   // Load saved draft on chat switch
   useEffect(() => {
     const savedDraft = loadDraft();
@@ -1399,12 +1401,12 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
 
   const suggestedPrompts = useMemo(
     () => [
-      'Review my code for bugs and improvements',
-      'Design a REST API for a todo app',
-      'Explain Big O notation with examples',
-      'Debug this error: [paste your error]',
-      'Compare SQL vs NoSQL databases',
-      'Write unit tests for this function',
+      'I have a persistent headache and fever.',
+      'What are the symptoms of strep throat?',
+      'How can I treat a minor burn at home?',
+      'Should I go to the hospital for chest pain?',
+      'Can you recommend a good local pediatrician?',
+      'What are the side effects of Ibuprofen?',
     ],
     []
   );
@@ -1492,7 +1494,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
     try {
       const ids = chats
         .map((c) => c.conversationId)
-        .filter((id) => typeof id === 'number' && Number.isFinite(id));
+        .filter(Boolean);
 
       for (const id of ids) {
         try {
@@ -1570,7 +1572,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                 isDarkMode ? 'border-gray-700' : 'border-gray-200'
               }`}
             >
-              <span className={`${isDarkMode ? 'text-white' : 'text-gray-900'} font-semibold`}>
+              <span className={`${isDarkMode ? 'text-white' : 'text-black'} font-semibold`}>
                 Chats
               </span>
               <button
@@ -1624,7 +1626,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                 className={`lg:hidden p-2 rounded-xl transition-all duration-200 ${
                   isDarkMode
                     ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    : 'bg-gray-100 hover:bg-gray-200 text-black'
                 }`}
                 aria-label="Open chat history"
               >
@@ -1640,11 +1642,11 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
               <div className="min-w-0">
                 <h1
                   className={`font-bold text-sm sm:text-base truncate ${
-                    isDarkMode ? 'text-white' : 'text-gray-900'
+                    isDarkMode ? 'text-white' : 'text-black'
                   }`}
                 >
-                  <span className="hidden sm:inline">
-                    {promptPresetKey === 'health' ? 'Health Assistant' : 'AI Code Assistant'}
+                  <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'} hidden sm:inline`}>
+                    AI Diagnosis & Health Assistant
                   </span>
                   <span className="sm:hidden">
                     {promptPresetKey === 'health' ? 'Health' : 'AI Assistant'}
@@ -1652,11 +1654,11 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                 </h1>
                 <p
                   className={`text-xs flex items-center gap-1.5 ${
-                    isDarkMode ? 'text-green-400' : 'text-green-600'
+                    isDarkMode ? 'text-green-400' : 'text-teal-600'
                   }`}
                 >
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  Online · Health & Coding
+                  <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></div>
+                  Online · Medical Diagnostician
                 </p>
               </div>
             </div>
@@ -1675,7 +1677,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                   {promptPresetKey !== 'health'
                     ? isDarkMode
                       ? 'bg-gray-700 text-white'
-                      : 'bg-gray-200 text-gray-900'
+                      : 'bg-gray-200 text-black'
                     : isDarkMode
                       ? 'text-gray-300 hover:bg-gray-700'
                       : 'text-gray-600 hover:bg-gray-100'
@@ -1691,7 +1693,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                   {promptPresetKey === 'health'
                     ? isDarkMode
                       ? 'bg-gray-700 text-white'
-                      : 'bg-gray-200 text-gray-900'
+                      : 'bg-gray-200 text-black'
                     : isDarkMode
                       ? 'text-gray-300 hover:bg-gray-700'
                       : 'text-gray-600 hover:bg-gray-100'
@@ -1709,7 +1711,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                 className={`p-2 rounded-xl transition-all duration-200 ${
                   isDarkMode
                     ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    : 'bg-gray-100 hover:bg-gray-200 text-black'
                 }`}
                 aria-label="Toggle dark mode"
               >
@@ -1794,7 +1796,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                       className={`px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm border transition-all duration-200 ${
                         isDarkMode
                           ? 'border-gray-700 text-gray-200 hover:bg-gray-800'
-                          : 'border-gray-300 text-gray-700 hover:bg-white'
+                          : 'border-gray-300 text-black hover:bg-white'
                       }`}
                       aria-label={`Use suggested prompt: ${p}`}
                     >
@@ -1825,7 +1827,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                   className={`pointer-events-auto px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-200 ${
                     isDarkMode
                       ? 'bg-gray-800 border-gray-700 text-white hover:bg-gray-700'
-                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 shadow-lg'
+                      : 'bg-white border-gray-300 text-black hover:bg-gray-50 shadow-lg'
                   }`}
                   aria-label="Jump to latest message"
                 >
