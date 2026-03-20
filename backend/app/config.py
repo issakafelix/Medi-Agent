@@ -18,8 +18,8 @@ class Settings(BaseSettings):
     app_host: str = "0.0.0.0"
     app_port: int = 3001
 
-    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
-    trusted_hosts: str = "localhost,127.0.0.1"
+    cors_origins: str = "*"
+    trusted_hosts: str = "*"
 
     database_url: str = "sqlite:///./app.db"
 
