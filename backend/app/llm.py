@@ -77,6 +77,10 @@ def _openai_url(base_url: str, path: str) -> str:
     # paths like "/chat/completions" (no extra "/v1").
     if base.endswith("/v1") and p.startswith("/v1/"):
         p = p[len("/v1") :]
+        
+    # Gemini OpenAI compatibility layer ending with /openai expects /chat/completions
+    if (base.endswith("/openai") or base.endswith("/openai/")) and p.startswith("/v1/"):
+        p = p[len("/v1") :]
 
     return base + p
 
