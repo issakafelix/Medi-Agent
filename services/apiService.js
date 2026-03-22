@@ -3,7 +3,7 @@
  * Centralized API calls with error handling
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ai-health-backend-mgcx.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ai-health-backend-mgcx.onrender.com/api';
 const IMAGE_DESCRIBE_URL = import.meta.env.VITE_IMAGE_DESCRIBE_URL || `${API_BASE_URL}/image/describe`;
 const IMAGE_GENERATE_URL = import.meta.env.VITE_IMAGE_GENERATE_URL || `${API_BASE_URL}/image/generate`;
 
