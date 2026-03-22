@@ -37,7 +37,8 @@ class Settings(BaseSettings):
 
     # Google AI Studio (Gemini) settings
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-1.5-flash"
+    # Model used by Gemini adapter
+    gemini_model: str = "gemini-2.0-flash"
 
     # Image generation (OpenAI Images API)
     openai_image_model: str = "dall-e-3"
