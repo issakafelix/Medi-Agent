@@ -29,21 +29,13 @@ export default function ChatHistory({
 
   return (
     <aside
-      className={`w-72 border-r flex flex-col ${
-        isDarkMode
-          ? 'bg-gray-900 border-gray-800'
-          : 'bg-white border-gray-200'
-      } h-full min-h-0`}
+      className={`w-72 border-r flex flex-col pt-[env(safe-area-inset-top)] bg-transparent border-stakely-border h-full min-h-0`}
     >
       {/* New Chat Button */}
       <button
         type="button"
         onClick={() => onNewChat?.()}
-        className={`m-3 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 border ${
-          isDarkMode
-            ? 'bg-gray-800 hover:bg-gray-700 text-white border-gray-700'
-            : 'bg-white hover:bg-gray-100 text-black border-gray-300'
-        }`}
+        className={`m-3 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 border border-stakely-border bg-stakely-surface-light text-gray-200 hover:bg-gray-800 hover:text-white shadow-sm flex items-center justify-center gap-2`}
         aria-label="Start new conversation"
       >
         + New Chat
@@ -90,12 +82,8 @@ export default function ChatHistory({
                 onClick={() => onSelectChat(chat.id)}
                 className={`w-full text-left pr-10 px-3 py-2.5 rounded-xl mb-1 transition-all duration-200 ${
                   currentChatId === chat.id
-                    ? isDarkMode
-                      ? 'bg-gray-800 text-white'
-                      : 'bg-gray-200 text-black'
-                    : isDarkMode
-                      ? 'text-gray-300 hover:bg-gray-700'
-                      : 'text-black hover:bg-white'
+                    ? 'bg-stakely-surface-light text-white shadow-inner-glow border border-stakely-border/50'
+                    : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'
                 }`}
                 aria-label={`Open chat: ${chat.title || 'Chat'}`}
               >
@@ -103,8 +91,8 @@ export default function ChatHistory({
                 <p
                   className={`truncate text-xs mt-0.5 ${
                     currentChatId === chat.id
-                      ? isDarkMode ? 'text-white/70' : 'text-gray-600'
-                      : isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                      ? 'text-gray-300'
+                      : 'text-gray-500'
                   }`}
                 >
                   {formatRelative(chat.updatedAt)}

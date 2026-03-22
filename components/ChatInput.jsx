@@ -3,7 +3,7 @@ import {
   PaperAirplaneIcon,
   MicrophoneIcon,
   PlusIcon,
-  SpeakerWaveIcon,
+  ArrowUpIcon,
 } from '@heroicons/react/24/solid';
 
 export default function ChatInput({
@@ -22,6 +22,9 @@ export default function ChatInput({
   onUploadImage,
   isListening,
   liveTranscript,
+  promptPresets = [],
+  promptPresetKey,
+  onPromptPresetChange,
 }) {
   const isControlled = typeof value === 'string' && typeof onChange === 'function';
   const [uncontrolledInput, setUncontrolledInput] = useState('');
@@ -54,11 +57,30 @@ export default function ChatInput({
 
   return (
     <div
-      className={`px-3 sm:px-6 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:pt-4 sm:pb-6 bg-transparent flex justify-center`}
+      className={`px-3 sm:px-6 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:pt-4 sm:pb-8 bg-transparent flex justify-center`}
     >
-      <div className={`w-full max-w-3xl flex flex-col p-3 rounded-[32px] transition-colors duration-200 ${
-        isDarkMode ? 'bg-[#1e1f22]' : 'bg-gray-100'
-      }`}>
+      <div className={`w-full max-w-3xl flex flex-col p-[2px] transition-all duration-300 glass-pill rounded-[2rem] focus-within:shadow-glow focus-within:border-violet-500/30`}>
+        <div className="flex flex-col p-3 pt-3">
+          {/* Preset Chips */}
+          {promptPresets.length > 0 && (
+             <div className="flex flex-wrap gap-2 mb-3 px-2">
+               {promptPresets.map((preset) => (
+                 <button
+                   key={preset.key}
+                   type="button"
+                   onClick={() => onPromptPresetChange?.(preset.key)}
+                   className={`flex items-center gap-1.5 px-3 py-1 bg-transparent rounded-full text-[11px] font-medium transition-colors border ${
+                     promptPresetKey === preset.key
+                       ? 'text-white border-stakely-border bg-stakely-surface shadow-glow'
+                       : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-gray-800/30'
+                   }`}
+                 >
+                   {preset.label}
+                 </button>
+               ))}
+             </div>
+          )}
+
         <form onSubmit={handleSubmit} className="flex flex-col">
           <input
             ref={attachmentInputRef}
@@ -143,16 +165,19 @@ export default function ChatInput({
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className={`p-2.5 rounded-full transition-colors ${
-                    isDarkMode ? 'text-white hover:bg-gray-700/50' : 'text-gray-900 hover:bg-gray-200'
+                  className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${
+                    !input.trim() || isLoading
+                      ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                      : 'bg-stakely-accent text-white shadow-glow hover:brightness-110'
                   }`}
                 >
-                  <PaperAirplaneIcon className="w-5 h-5" />
+                  <ArrowUpIcon className="w-4 h-4 stroke-2" />
                 </button>
               )}
             </div>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

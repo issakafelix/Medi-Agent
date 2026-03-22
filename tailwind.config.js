@@ -47,6 +47,15 @@ export default {
           900: '#13111c',
           950: '#0c0a14',
         },
+        // Stakely specific colors
+        stakely: {
+          bg: '#050505',
+          surface: '#0B0B0E',
+          'surface-light': '#12131A',
+          border: '#1E1E24',
+          accent: '#8B5CF6',
+          'accent-glow': 'rgba(139, 92, 246, 0.4)',
+        },
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

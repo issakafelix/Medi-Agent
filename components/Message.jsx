@@ -52,7 +52,7 @@ export default function Message({
     <div
       className={`w-full flex ${
         isBot ? 'justify-start' : 'justify-end'
-      } animate-slideIn my-4 sm:my-6 px-3 sm:px-6`}
+      } animate-fadeInUp my-3 sm:my-5 px-3 sm:px-6`}
     >
       <div 
         className={`flex max-w-[90%] sm:max-w-[80%] md:max-w-3xl flex-col gap-1 group ${
@@ -63,7 +63,7 @@ export default function Message({
           {/* Avatar */}
           <div
             className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-sm flex items-center justify-center flex-shrink-0 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-white border border-gray-100'
+              isBot ? 'bg-stakely-surface-light border border-stakely-border/50' : 'bg-gray-800 border border-gray-700 text-white'
             }`}
             role="img"
           >
@@ -83,14 +83,12 @@ export default function Message({
 
           {/* Message Bubble */}
           <div
-            className={`relative px-4 sm:px-5 py-3 sm:py-4 shadow-sm text-[15px] sm:text-base leading-relaxed break-words
+            className={`relative px-4 sm:px-5 py-3 sm:py-4 shadow-sm text-[15px] sm:text-base leading-relaxed break-words transition-all duration-300
               ${hasError ? 'border-2 border-red-500' : ''}
               ${
                 isBot 
-                  ? isDarkMode 
-                    ? 'bg-gray-800 text-gray-100 rounded-tr-2xl rounded-tl-2xl rounded-br-2xl rounded-bl-sm border border-gray-700' 
-                    : 'bg-white text-gray-800 rounded-tr-3xl rounded-tl-3xl rounded-br-3xl rounded-bl-sm border border-gray-100'
-                  : 'bg-teal-600 text-white rounded-tr-3xl rounded-tl-3xl rounded-bl-3xl rounded-br-sm'
+                  ? 'bg-transparent text-gray-200 rounded-tr-2xl rounded-tl-2xl rounded-br-2xl rounded-bl-sm hover:bg-white/5 hover:border-violet-500/20 border border-transparent' 
+                  : 'bg-stakely-surface-light text-gray-200 rounded-2xl border border-stakely-border hover:border-violet-500/30 hover:shadow-glow'
               }`}
           >
             <ReactMarkdown

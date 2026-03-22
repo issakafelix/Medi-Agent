@@ -116,18 +116,7 @@ async function extractTextFromPdfOptional(file) {
 }
 
 export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMode } = {}) {
-  const initialMessages = useMemo(
-    () => [
-      {
-        id: 1,
-        text: "👋 Hello! I'm your AI Medical & Diagnosis Assistant.\n\nPlease describe your symptoms in detail (including severity and duration), and I will help analyze potential conditions, suggest treatment steps, and recommend suitable hospitals or specialists.\n\n*Disclaimer: I am an AI, not a doctor. In case of a medical emergency, please call your local emergency services immediately.*",
-        sender: 'bot',
-        timestamp: new Date(Date.now() - 60000),
-        avatar: '🏥',
-      },
-    ],
-    []
-  );
+  const initialMessages = useMemo(() => [], []);
 
   const [chats, setChats] = useState([
     {
@@ -1534,9 +1523,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
   }, [isSidebarOpen]);
 
   return (
-    <div
-      className="fixed inset-0 flex bg-[var(--bg-primary)] overflow-hidden"
-    >
+    <div className="fixed inset-0 flex bg-transparent overflow-hidden">
       {/* Sidebar (desktop docked) */}
       <div className="hidden lg:block shrink-0">
         <ChatHistory
@@ -1612,23 +1599,26 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Header */}
-        <header
-          className={`shrink-0 pt-[env(safe-area-inset-top)] bg-[var(--bg-primary)]`}
-        >
-          <div className="px-4 py-3 flex items-center justify-between">
+        <header className="shrink-0 pt-[env(safe-area-inset-top)] bg-transparent">
+          <div className="px-4 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-               <button onClick={() => setIsSidebarOpen(true)} className={`lg:hidden p-1 -ml-1 ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
+               <button onClick={() => setIsSidebarOpen(true)} className={`lg:hidden p-1 -ml-1 text-gray-400 hover:text-white transition-colors`}>
                  <Bars3Icon className="w-6 h-6" />
                </button>
-               <span className={`text-[20px] sm:text-[22px] font-normal tracking-tight ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
-                 Health Assistant
-               </span>
+               <div className="flex items-center gap-2">
+                 <div className="w-6 h-6 rounded bg-gradient-to-br from-stakely-accent to-purple-800 flex items-center justify-center shadow-glow">
+                   <span className="text-white text-xs font-bold font-serif italic text-shadow">S</span>
+                 </div>
+                 <span className="text-[16px] font-medium tracking-tight text-gray-200">
+                   HealthBot 4.0
+                 </span>
+               </div>
             </div>
             <div className="flex items-center gap-3 relative">
-               <button onClick={toggleDarkMode} className={`px-2.5 py-1 text-[10px] font-bold tracking-wider rounded-full border ${isDarkMode ? "border-gray-700 bg-transparent text-gray-400 hover:bg-gray-800" : "border-gray-300 text-gray-500 hover:bg-gray-100"}`}>
-                 MODE
+               <button className="px-3 py-1.5 text-[11px] font-semibold tracking-wider rounded-full border border-stakely-border bg-stakely-surface-light text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                 <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                 Connect Wallet
                </button>
-               <img src="/chat-con.png" className={`w-8 h-8 rounded-full border ${isDarkMode ? "border-gray-700" : "border-gray-200"}`} alt="Profile" />
             </div>
           </div>
         </header>
@@ -1689,26 +1679,47 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
               </React.Fragment>
             ))}
 
-            {/* Suggested prompts */}
-            {!hasUserMessages && !isLoading && (
-              <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 py-6">
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-xs sm:text-sm font-medium`}>
-                  Try one of these:
-                </p>
-                <div className="mt-2 sm:mt-3 flex flex-wrap gap-1.5 sm:gap-2">
-                  {suggestedPrompts.map((p) => (
+            {/* Empty State – Animated Orb + Staggered Cards */}
+            {messages.length === 0 && !isLoading && (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 mt-16 sm:mt-24 animate-fadeInUp">
+
+                {/* Floating glowing orb */}
+                <div className="relative w-32 h-32 mb-10 animate-floatOrb">
+                  {/* Outer glow ring */}
+                  <span className="absolute inset-[-12px] rounded-full border border-violet-500/20 animate-ringPulse" />
+                  <span className="absolute inset-[-24px] rounded-full border border-violet-500/10 animate-ringPulse delay-300" />
+                  {/* Orb body */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gray-600 via-[#1c1c2e] to-black border border-white/10 shadow-2xl animate-orbGlow overflow-hidden">
+                    {/* Shimmer highlight */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-transparent -skew-x-12 translate-x-[-120%] animate-[shimmer_3s_ease-in-out_infinite]" />
+                    {/* Inner glow */}
+                    <div className="absolute inset-0 rounded-full" style={{background:'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.12), transparent 65%)'}} />
+                  </div>
+                </div>
+
+                {/* Headline */}
+                <div className="text-center space-y-2 mb-10">
+                  <h2 className="text-lg text-gray-500 font-medium tracking-widest uppercase animate-fadeInUp delay-150">Let's get started.</h2>
+                  <h1 className="text-3xl sm:text-4xl text-white font-semibold tracking-tight animate-fadeInUp delay-225">How Can I Assist You Today?</h1>
+                </div>
+
+                {/* Quick-action suggestion cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl">
+                  {[
+                    { icon: '🩺', label: 'Check my symptoms', sub: 'Describe how you feel' },
+                    { icon: '💊', label: 'Medication advice',  sub: 'Dosage & interactions' },
+                    { icon: '🧠', label: 'Mental wellness',    sub: 'Stress, sleep & mood' },
+                  ].map((card, i) => (
                     <button
-                      key={p}
+                      key={card.label}
                       type="button"
-                      onClick={() => handleSendMessage(p, 'text')}
-                      className={`px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm border transition-all duration-200 ${
-                        isDarkMode
-                          ? 'border-gray-700 text-gray-200 hover:bg-gray-800'
-                          : 'border-gray-300 text-black hover:bg-white'
-                      }`}
-                      aria-label={`Use suggested prompt: ${p}`}
+                      onClick={() => handleSendMessage(card.label, 'text')}
+                      className="glass-pill rounded-2xl p-4 text-left group hover:border-violet-500/40 hover:shadow-glow transition-all duration-300 animate-chipBounce"
+                      style={{ animationDelay: `${300 + i * 80}ms` }}
                     >
-                      {p}
+                      <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">{card.icon}</div>
+                      <p className="text-sm font-semibold text-gray-200 group-hover:text-white transition-colors">{card.label}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{card.sub}</p>
                     </button>
                   ))}
                 </div>
