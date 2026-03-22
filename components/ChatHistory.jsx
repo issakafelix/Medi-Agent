@@ -107,11 +107,7 @@ export default function ChatHistory({
                     e.stopPropagation();
                     onDeleteChat(chat.id);
                   }}
-                  className={`absolute right-2 top-2 p-2 rounded-lg transition-opacity ${
-                    isDarkMode
-                      ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
-                      : 'text-gray-500 hover:text-black hover:bg-gray-100'
-                  } opacity-0 group-hover:opacity-100 focus:opacity-100`}
+                  className="absolute right-2 top-2 p-2 rounded-lg transition-all duration-200 text-gray-500 hover:text-red-400 hover:bg-red-400/10 opacity-30 group-hover:opacity-100 focus:opacity-100"
                   aria-label={`Delete chat: ${chat.title || 'Chat'}`}
                 >
                   <TrashIcon className="w-4 h-4" />

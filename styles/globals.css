@@ -163,6 +163,10 @@
   background: rgba(107, 114, 128, 0.85);
 }
 
+/* Hide scrollbar for chips row on mobile */
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 /* Textarea Auto-resize */
 textarea {
   resize: none;

@@ -140,6 +140,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
   const isThemeExplicitRef = useRef(false);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
   
   // New AI feature states
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
@@ -1437,7 +1438,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
     const chat = chats.find((c) => c.id === chatId);
     if (!chat) return;
 
-    const ok = window.confirm('Delete this chat? This cannot be undone.');
+    const ok = true; // Delete immediately — no native confirm dialog needed
     if (!ok) return;
 
     try {
@@ -1524,8 +1525,13 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
 
   return (
     <div className="fixed inset-0 flex bg-transparent overflow-hidden">
-      {/* Sidebar (desktop docked) */}
-      <div className="hidden lg:block shrink-0">
+      {/* Sidebar (desktop docked) - with smooth slide toggle */}
+      <div
+        className={`hidden lg:flex flex-col shrink-0 transition-all duration-300 ease-in-out overflow-hidden ${
+          isDesktopSidebarOpen ? 'w-72 opacity-100' : 'w-0 opacity-0'
+        }`}
+        aria-hidden={!isDesktopSidebarOpen}
+      >
         <ChatHistory
           isDarkMode={isDarkMode}
           conversations={chats}
@@ -1547,9 +1553,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
             onClick={() => setIsSidebarOpen(false)}
           />
           <div
-            className={`absolute left-0 top-0 h-full w-72 max-w-[85vw] flex flex-col animate-slideInRight motion-reduce:animate-none ${
-              isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            } border-r shadow-2xl`}
+            className="absolute left-0 top-0 h-full w-72 max-w-[85vw] flex flex-col animate-slideInRight motion-reduce:animate-none bg-[#0B0B0E] border-r border-stakely-border shadow-2xl"
             role="dialog"
             aria-modal="true"
             aria-label="Chat history"
@@ -1599,25 +1603,34 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Header */}
-        <header className="shrink-0 pt-[env(safe-area-inset-top)] bg-transparent">
-          <div className="px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-               <button onClick={() => setIsSidebarOpen(true)} className={`lg:hidden p-1 -ml-1 text-gray-400 hover:text-white transition-colors`}>
-                 <Bars3Icon className="w-6 h-6" />
+        <header className="shrink-0 pt-[env(safe-area-inset-top)] pb-4 sm:pb-6 bg-transparent">
+          <div className="px-3 sm:px-4 py-2 sm:py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-4">
+               {/* Mobile hamburger */}
+               <button onClick={() => setIsSidebarOpen(true)} className={`lg:hidden p-1.5 text-gray-400 hover:text-white transition-colors`}>
+                 <Bars3Icon className="w-5 h-5" />
                </button>
-               <div className="flex items-center gap-2">
-                 <div className="w-6 h-6 rounded bg-gradient-to-br from-stakely-accent to-purple-800 flex items-center justify-center shadow-glow">
-                   <span className="text-white text-xs font-bold font-serif italic text-shadow">S</span>
+               {/* Desktop sidebar toggle */}
+               <button
+                 onClick={() => setIsDesktopSidebarOpen(prev => !prev)}
+                 className="hidden lg:flex p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200"
+                 aria-label={isDesktopSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+               >
+                 <Bars3Icon className="w-5 h-5" />
+               </button>
+               <div className="flex items-center gap-1.5 sm:gap-2">
+                 <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-gradient-to-br from-stakely-accent to-purple-800 flex items-center justify-center shadow-glow shrink-0">
+                   <span className="text-white text-[10px] font-bold font-serif italic">S</span>
                  </div>
-                 <span className="text-[16px] font-medium tracking-tight text-gray-200">
+                 <span className="text-sm sm:text-[16px] font-medium tracking-tight text-gray-200 whitespace-nowrap">
                    HealthBot 4.0
                  </span>
                </div>
             </div>
-            <div className="flex items-center gap-3 relative">
-               <button className="px-3 py-1.5 text-[11px] font-semibold tracking-wider rounded-full border border-stakely-border bg-stakely-surface-light text-gray-400 hover:text-white transition-colors flex items-center gap-2">
-                 <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-                 Connect Wallet
+            <div className="flex items-center gap-2 sm:gap-3 relative">
+               <button className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-wider rounded-full border border-stakely-border bg-stakely-surface-light text-gray-400 hover:text-white transition-colors flex items-center gap-1.5">
+                 <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-500 animate-pulse shrink-0"></span>
+                 <span className="hidden xs:inline sm:inline">Connect Wallet</span>
                </button>
             </div>
           </div>
@@ -1638,7 +1651,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
         {/* Messages Container */}
         <div
           ref={messagesContainerRef}
-          className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+          className={`flex-1 min-h-0 overscroll-contain ${messages.length > 0 ? 'overflow-y-auto' : 'overflow-y-hidden'}`}
         >
           <div className="w-full">
             {messages.map((message) => (
@@ -1681,30 +1694,28 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
 
             {/* Empty State – Animated Orb + Staggered Cards */}
             {messages.length === 0 && !isLoading && (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 mt-16 sm:mt-24 animate-fadeInUp">
+               <div className="w-full flex flex-col items-center justify-start pt-8 sm:pt-12 pb-8 px-4 sm:px-8 animate-fadeInUp">
 
                 {/* Floating glowing orb */}
-                <div className="relative w-32 h-32 mb-10 animate-floatOrb">
+                <div className="relative w-20 h-20 sm:w-32 sm:h-32 mb-6 sm:mb-10 animate-floatOrb">
                   {/* Outer glow ring */}
-                  <span className="absolute inset-[-12px] rounded-full border border-violet-500/20 animate-ringPulse" />
-                  <span className="absolute inset-[-24px] rounded-full border border-violet-500/10 animate-ringPulse delay-300" />
+                  <span className="absolute inset-[-8px] sm:inset-[-12px] rounded-full border border-violet-500/20 animate-ringPulse" />
+                  <span className="absolute inset-[-16px] sm:inset-[-24px] rounded-full border border-violet-500/10 animate-ringPulse delay-300" />
                   {/* Orb body */}
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gray-600 via-[#1c1c2e] to-black border border-white/10 shadow-2xl animate-orbGlow overflow-hidden">
-                    {/* Shimmer highlight */}
                     <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-transparent -skew-x-12 translate-x-[-120%] animate-[shimmer_3s_ease-in-out_infinite]" />
-                    {/* Inner glow */}
                     <div className="absolute inset-0 rounded-full" style={{background:'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.12), transparent 65%)'}} />
                   </div>
                 </div>
 
                 {/* Headline */}
-                <div className="text-center space-y-2 mb-10">
-                  <h2 className="text-lg text-gray-500 font-medium tracking-widest uppercase animate-fadeInUp delay-150">Let's get started.</h2>
-                  <h1 className="text-3xl sm:text-4xl text-white font-semibold tracking-tight animate-fadeInUp delay-225">How Can I Assist You Today?</h1>
+                <div className="text-center space-y-1 sm:space-y-2 mb-6 sm:mb-10 px-4">
+                  <h2 className="text-sm sm:text-lg text-gray-500 font-medium tracking-widest uppercase animate-fadeInUp delay-150">Let's get started.</h2>
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl text-white font-semibold tracking-tight animate-fadeInUp delay-225">How Can I Assist You Today?</h1>
                 </div>
 
-                {/* Quick-action suggestion cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl">
+                {/* Quick-action suggestion cards — 1 col mobile, 3 col sm+ */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 w-full max-w-2xl">
                   {[
                     { icon: '🩺', label: 'Check my symptoms', sub: 'Describe how you feel' },
                     { icon: '💊', label: 'Medication advice',  sub: 'Dosage & interactions' },
@@ -1714,17 +1725,20 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                       key={card.label}
                       type="button"
                       onClick={() => handleSendMessage(card.label, 'text')}
-                      className="glass-pill rounded-2xl p-4 text-left group hover:border-violet-500/40 hover:shadow-glow transition-all duration-300 animate-chipBounce"
+                      className="glass-pill rounded-xl sm:rounded-2xl p-3 sm:p-4 text-left group hover:border-violet-500/40 hover:shadow-glow transition-all duration-300 animate-chipBounce flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0"
                       style={{ animationDelay: `${300 + i * 80}ms` }}
                     >
-                      <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">{card.icon}</div>
-                      <p className="text-sm font-semibold text-gray-200 group-hover:text-white transition-colors">{card.label}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{card.sub}</p>
+                      <div className="text-xl sm:text-2xl sm:mb-2 group-hover:scale-110 transition-transform duration-200 shrink-0">{card.icon}</div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-200 group-hover:text-white transition-colors">{card.label}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{card.sub}</p>
+                      </div>
                     </button>
                   ))}
                 </div>
               </div>
             )}
+
 
             {/* Typing Indicator */}
             {isLoading && (

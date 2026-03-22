@@ -63,7 +63,7 @@ export default function ChatInput({
         <div className="flex flex-col p-3 pt-3">
           {/* Preset Chips */}
           {promptPresets.length > 0 && (
-             <div className="flex flex-wrap gap-2 mb-3 px-2">
+             <div className="flex overflow-x-auto gap-1.5 sm:gap-2 mb-3 px-1 pb-1 no-scrollbar">
                {promptPresets.map((preset) => (
                  <button
                    key={preset.key}
