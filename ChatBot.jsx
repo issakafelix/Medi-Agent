@@ -9,11 +9,13 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import SearchModal from './components/SearchModal';
 import ResponseTimeIndicator from './components/ResponseTimeIndicator';
 import { useVoiceInput, useAutoSaveDraft, useSuggestedPrompts } from './hooks/useAIFeatures';
+import { useAuth } from './contexts/AuthContext';
 import {
   SunIcon,
   MoonIcon,
   Bars3Icon,
   XMarkIcon,
+  ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 import {
   describeImage,
@@ -1632,6 +1634,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-500 animate-pulse shrink-0"></span>
                  <span className="hidden xs:inline sm:inline">Connect Wallet</span>
                </button>
+               <LogoutButton />
             </div>
           </div>
         </header>
@@ -1823,5 +1826,19 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
         }}
       />
     </div>
+  );
+}
+
+function LogoutButton() {
+  const { logout } = useAuth();
+  return (
+    <button
+      onClick={logout}
+      title="Sign out"
+      className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-wider rounded-full border border-stakely-border bg-stakely-surface-light text-gray-400 hover:text-red-400 hover:border-red-500/40 transition-colors"
+    >
+      <ArrowRightOnRectangleIcon className="w-3.5 h-3.5" />
+      <span className="hidden sm:inline">Sign out</span>
+    </button>
   );
 }
