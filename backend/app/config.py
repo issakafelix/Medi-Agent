@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     openai_image_model: str = "dall-e-3"
     openai_image_size: str = "1024x1024"
 
+    # Firebase Admin Settings 
+    # Store the massive JSON string from Firebase in this variable on Render.
+    firebase_service_account_json: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

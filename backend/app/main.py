@@ -75,6 +75,21 @@ def create_app() -> FastAPI:
         logging.getLogger("uvicorn.error").info("Initializing database")
         init_db()
 
+        # Initialize Firebase Admin securely
+        if settings.firebase_service_account_json:
+            try:
+                import json
+                import firebase_admin
+                from firebase_admin import credentials
+                cert_dict = json.loads(settings.firebase_service_account_json)
+                cred = credentials.Certificate(cert_dict)
+                firebase_admin.initialize_app(cred)
+                logging.getLogger("uvicorn.error").info("Firebase Admin initialized successfully.")
+            except Exception as e:
+                logging.getLogger("uvicorn.error").error(f"Failed to initialize Firebase Admin: {e}")
+        else:
+            logging.getLogger("uvicorn.error").warning("Running WARNING: FIREBASE_SERVICE_ACCOUNT_JSON not provided. Authentication will throw 500 errors if hit.")
+
     @app.get("/health")
     def health():
         return {"ok": True}

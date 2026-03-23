@@ -132,9 +132,16 @@ def _demo_llm_reply(
     return out
 
 
+from ..auth import get_current_user
+
 @router.post("/api/chat", response_model=ChatResponse)
-async def chat(payload: ChatRequest, session: Session = Depends(get_session)) -> ChatResponse:
+async def chat(
+    payload: ChatRequest, 
+    session: Session = Depends(get_session),
+    user: dict = Depends(get_current_user),
+) -> ChatResponse:
     settings = get_settings()
+    uid = user["uid"]
 
     raw_text = (payload.message or "").strip()
     is_image_cmd = raw_text.lower().startswith("/image ") or raw_text.lower().startswith("/img ")
@@ -142,12 +149,18 @@ async def chat(payload: ChatRequest, session: Session = Depends(get_session)) ->
     convo_id = payload.conversation_id
     if convo_id is None:
         title = (payload.message or "New chat").strip()[:40] or "New chat"
-        convo = Conversation(title=title, created_at=datetime.utcnow(), updated_at=datetime.utcnow())
+        convo = Conversation(title=title, user_id=uid, created_at=datetime.utcnow(), updated_at=datetime.utcnow())
         session.add(convo)
         session.commit()
         session.refresh(convo)
     else:
-        convo = session.get(Conversation, convo_id) or Conversation(id=convo_id, title="Chat", updated_at=datetime.utcnow())
+        convo = session.get(Conversation, convo_id)
+        if convo is None:
+            # Recreate with the provided ID if required (for offline-sync logic) but ensure it belongs to this user.
+            convo = Conversation(id=convo_id, title="Chat", user_id=uid, updated_at=datetime.utcnow())
+        elif convo.user_id != uid:
+            raise HTTPException(status_code=403, detail="Forbidden")
+
         session.add(convo)
         session.commit()
         session.refresh(convo)

@@ -20,8 +20,15 @@ router = APIRouter(tags=["conversations"])
 def list_conversations(
     limit: int = Query(default=50, ge=1, le=200),
     session: Session = Depends(get_session),
+    user: dict = Depends(get_current_user),
 ) -> ConversationsResponse:
-    stmt = select(Conversation).order_by(Conversation.updated_at.desc()).limit(limit)
+    uid = user["uid"]
+    stmt = (
+        select(Conversation)
+        .where(Conversation.user_id == uid)
+        .order_by(Conversation.updated_at.desc())
+        .limit(limit)
+    )
     rows = session.exec(stmt).all()
     return ConversationsResponse(
         conversations=[
@@ -37,9 +44,13 @@ def list_conversations(
 
 
 @router.get("/api/conversations/{conversation_id}", response_model=ConversationDetail)
-def get_conversation(conversation_id: int, session: Session = Depends(get_session)) -> ConversationDetail:
+def get_conversation(
+    conversation_id: int, 
+    session: Session = Depends(get_session),
+    user: dict = Depends(get_current_user),
+) -> ConversationDetail:
     convo = session.get(Conversation, conversation_id)
-    if convo is None:
+    if convo is None or convo.user_id != user["uid"]:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     msgs = session.exec(
@@ -67,10 +78,16 @@ def get_conversation(conversation_id: int, session: Session = Depends(get_sessio
 
 
 @router.delete("/api/conversations/{conversation_id}", response_model=OkResponse)
-def delete_conversation(conversation_id: int, session: Session = Depends(get_session)) -> OkResponse:
+def delete_conversation(
+    conversation_id: int, 
+    session: Session = Depends(get_session),
+    user: dict = Depends(get_current_user),
+) -> OkResponse:
     convo = session.get(Conversation, conversation_id)
     if convo is None:
         return OkResponse(ok=True)
+    if convo.user_id != user["uid"]:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     msgs = session.exec(select(Message).where(Message.conversation_id == conversation_id)).all()
     for m in msgs:

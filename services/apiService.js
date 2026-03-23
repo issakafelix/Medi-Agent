@@ -2,10 +2,27 @@
  * API Service for Chatbot
  * Centralized API calls with error handling
  */
+import { auth } from '../firebase';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ai-health-backend-mgcx.onrender.com/api';
 const IMAGE_DESCRIBE_URL = import.meta.env.VITE_IMAGE_DESCRIBE_URL || `${API_BASE_URL}/image/describe`;
 const IMAGE_GENERATE_URL = import.meta.env.VITE_IMAGE_GENERATE_URL || `${API_BASE_URL}/image/generate`;
+
+/**
+ * Helper function to retrieve Firebase tokens securely and map headers.
+ */
+async function getAuthHeaders(isJson = true) {
+  const headers = {};
+  if (isJson) {
+    headers['Content-Type'] = 'application/json';
+  }
+  if (auth && auth.currentUser) {
+    // Force refresh token if needed, keeping session secure
+    const token = await auth.currentUser.getIdToken();
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
 
 /**
  * Send message to AI backend
@@ -22,9 +39,7 @@ export async function sendMessage(message, options = {}) {
 
     const response = await fetch(`${API_BASE_URL}/chat`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: await getAuthHeaders(true),
       body: JSON.stringify({
         message,
         timestamp: new Date().toISOString(),
@@ -52,7 +67,9 @@ export async function sendMessage(message, options = {}) {
  */
 export async function getChatHistory(limit = 50) {
   try {
-    const response = await fetch(`${API_BASE_URL}/history?limit=${limit}`);
+    const response = await fetch(`${API_BASE_URL}/history?limit=${limit}`, {
+      headers: await getAuthHeaders(false),
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -70,7 +87,9 @@ export async function getChatHistory(limit = 50) {
  */
 export async function getConversations(limit = 50) {
   try {
-    const response = await fetch(`${API_BASE_URL}/conversations?limit=${limit}`);
+    const response = await fetch(`${API_BASE_URL}/conversations?limit=${limit}`, {
+      headers: await getAuthHeaders(false),
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -88,7 +107,9 @@ export async function getConversations(limit = 50) {
  */
 export async function getConversation(conversationId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}`);
+    const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}`, {
+      headers: await getAuthHeaders(false),
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -108,6 +129,7 @@ export async function deleteConversation(conversationId) {
   try {
     const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}`, {
       method: 'DELETE',
+      headers: await getAuthHeaders(false),
     });
 
     if (!response.ok) {
@@ -162,9 +184,7 @@ export async function rateMessage(messageId, rating) {
   try {
     const response = await fetch(`${API_BASE_URL}/messages/${messageId}/rating`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: await getAuthHeaders(true),
       body: JSON.stringify({ rating }), // 1 for thumbs up, -1 for thumbs down
     });
 
@@ -191,6 +211,7 @@ export async function describeImage(file) {
 
   const response = await fetch(IMAGE_DESCRIBE_URL, {
     method: 'POST',
+    headers: await getAuthHeaders(false), // Fetch automatically sets multipart boundary
     body: form,
   });
 
@@ -213,9 +234,7 @@ export async function generateImage(prompt, options = {}) {
 
   const response = await fetch(IMAGE_GENERATE_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: await getAuthHeaders(true),
     body: JSON.stringify({ prompt: text, size: size ?? undefined }),
   });
 

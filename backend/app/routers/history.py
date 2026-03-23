@@ -10,12 +10,23 @@ from ..schemas import HistoryItem, HistoryResponse
 router = APIRouter(tags=["history"])
 
 
+from ..auth import get_current_user
+from ..models import Conversation
+
 @router.get("/api/history", response_model=HistoryResponse)
 def history(
     limit: int = Query(default=50, ge=1, le=200),
     session: Session = Depends(get_session),
+    user: dict = Depends(get_current_user),
 ) -> HistoryResponse:
-    stmt = select(Message).order_by(Message.created_at.desc()).limit(limit)
+    uid = user["uid"]
+    stmt = (
+        select(Message)
+        .join(Conversation)
+        .where(Conversation.user_id == uid)
+        .order_by(Message.created_at.desc())
+        .limit(limit)
+    )
     rows = session.exec(stmt).all()
     items = [
         HistoryItem(
