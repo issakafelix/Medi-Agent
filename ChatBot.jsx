@@ -7,6 +7,7 @@ import ChatHistory from './components/ChatHistory';
 import SuggestedPrompts from './components/SuggestedPrompts';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import SearchModal from './components/SearchModal';
+import AboutModal from './components/AboutModal';
 import ResponseTimeIndicator from './components/ResponseTimeIndicator';
 import { useVoiceInput, useAutoSaveDraft, useSuggestedPrompts } from './hooks/useAIFeatures';
 import { useAuth } from './contexts/AuthContext';
@@ -15,6 +16,7 @@ import {
   MoonIcon,
   Bars3Icon,
   XMarkIcon,
+  InformationCircleIcon,
   ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 import {
@@ -147,6 +149,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
   // New AI feature states
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
   const requestStartTimeRef = useRef(null);
 
   const inputRef = useRef(null);
@@ -1630,6 +1633,13 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 relative">
+               <button 
+                 onClick={() => setShowAboutModal(true)}
+                 className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-wider rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-300 hover:text-white hover:bg-purple-500/30 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all flex items-center gap-1.5"
+               >
+                 <InformationCircleIcon className="w-3.5 h-3.5" />
+                 <span className="hidden xs:inline sm:inline">About</span>
+               </button>
                <button className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-wider rounded-full border border-stakely-border bg-stakely-surface-light text-gray-400 hover:text-white transition-colors flex items-center gap-1.5">
                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-500 animate-pulse shrink-0"></span>
                  <span className="hidden xs:inline sm:inline">Connect Wallet</span>
@@ -1824,6 +1834,11 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
           handleSelectChat(result.chatId);
           showToast(`Jumped to ${result.chatTitle}`, 'success');
         }}
+      />
+
+      <AboutModal 
+        isOpen={showAboutModal}
+        onClose={() => setShowAboutModal(false)}
       />
     </div>
   );
