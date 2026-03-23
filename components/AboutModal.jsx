@@ -22,13 +22,13 @@ export default function AboutModal({ isOpen, onClose }) {
       onClick={onClose}
     >
       <div
-        className={`relative w-full max-w-2xl overflow-hidden rounded-3xl transition-all duration-500 transform ${
+        className={`relative w-full max-w-2xl max-h-[85vh] overflow-y-auto overflow-x-hidden rounded-3xl transition-all duration-500 transform shadow-2xl ${
           isOpen ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-8 opacity-0'
         }`}
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'linear-gradient(135deg, rgba(30, 27, 75, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)',
-          boxShadow: '0 0 40px rgba(139, 92, 246, 0.15), inset 0 0 0 1px rgba(139, 92, 246, 0.2)',
+          backgroundColor: '#808080',
+          boxShadow: '0 0 40px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(20px)',
         }}
       >
