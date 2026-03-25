@@ -7,8 +7,8 @@ import './styles/globals.css';
 function AppContent() {
   const { user } = useAuth();
   return (
-    <div className="antialiased dark h-screen w-screen overflow-hidden bg-stakely-bg text-gray-200">
-      {user ? <ChatBot isDarkMode={true} /> : <AuthPage />}
+    <div className="antialiased h-screen w-screen overflow-hidden bg-[var(--bg-color)] text-[var(--user-text)]">
+      {user ? <ChatBot isDarkMode={false} /> : <AuthPage />}
     </div>
   );
 }

@@ -9,6 +9,8 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import SearchModal from './components/SearchModal';
 import AboutModal from './components/AboutModal';
 import ResponseTimeIndicator from './components/ResponseTimeIndicator';
+import ProfilePopover from './components/ProfilePopover';
+import UserAccountModal from './components/UserAccountModal';
 import { useVoiceInput, useAutoSaveDraft, useSuggestedPrompts } from './hooks/useAIFeatures';
 import { useAuth } from './contexts/AuthContext';
 import {
@@ -150,6 +152,8 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const requestStartTimeRef = useRef(null);
 
   const inputRef = useRef(null);
@@ -1624,11 +1628,11 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                  <Bars3Icon className="w-5 h-5" />
                </button>
                <div className="flex items-center gap-1.5 sm:gap-2">
-                 <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-gradient-to-br from-stakely-accent to-purple-800 flex items-center justify-center shadow-glow shrink-0">
-                   <span className="text-white text-[10px] font-bold font-serif italic">S</span>
+                 <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-[var(--brand-main)] shadow-md flex items-center justify-center shrink-0">
+                   <span className="text-white text-[10px] font-bold italic">E</span>
                  </div>
-                 <span className="text-sm sm:text-[16px] font-medium tracking-tight text-gray-200 whitespace-nowrap">
-                   HealthBot 4.0
+                 <span className="text-sm sm:text-[16px] font-semibold tracking-tight text-[var(--user-text)] whitespace-nowrap">
+                                       EmeraldBot 1.0
                  </span>
                </div>
             </div>
@@ -1640,14 +1644,22 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                  <InformationCircleIcon className="w-3.5 h-3.5" />
                  <span className="hidden xs:inline sm:inline">About</span>
                </button>
-               <button className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-wider rounded-full border border-stakely-border bg-stakely-surface-light text-gray-400 hover:text-white transition-colors flex items-center gap-1.5">
-                 <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-500 animate-pulse shrink-0"></span>
-                 <span className="hidden xs:inline sm:inline">Connect Wallet</span>
-               </button>
-               <LogoutButton />
+
+               <LogoutButton onToggleProfile={() => setIsProfileOpen(!isProfileOpen)} />
+               <ProfilePopover 
+                 isOpen={isProfileOpen} 
+                 onClose={() => setIsProfileOpen(false)} 
+                 onOpenAccount={() => setIsAccountModalOpen(true)}
+               />
             </div>
           </div>
         </header>
+
+        {/* Modals */}
+        <UserAccountModal 
+          isOpen={isAccountModalOpen} 
+          onClose={() => setIsAccountModalOpen(false)} 
+        />
 
         {/* Toast */}
         {toast && (
@@ -1664,7 +1676,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
         {/* Messages Container */}
         <div
           ref={messagesContainerRef}
-          className={`flex-1 min-h-0 overscroll-contain ${messages.length > 0 ? 'overflow-y-auto' : 'overflow-y-hidden'}`}
+          className="flex-1 min-h-0 overscroll-contain overflow-y-auto"
         >
           <div className="w-full">
             {messages.map((message) => (
@@ -1707,24 +1719,24 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
 
             {/* Empty State – Animated Orb + Staggered Cards */}
             {messages.length === 0 && !isLoading && (
-               <div className="w-full flex flex-col items-center justify-start pt-8 sm:pt-12 pb-8 px-4 sm:px-8 animate-fadeInUp">
+               <div className="w-full h-full flex flex-col items-center justify-center px-4 sm:px-8 animate-fadeInUp">
 
                 {/* Floating glowing orb */}
-                <div className="relative w-20 h-20 sm:w-32 sm:h-32 mb-6 sm:mb-10 animate-floatOrb">
+                <div className="relative w-24 h-24 sm:w-36 sm:h-36 mb-6 sm:mb-10 animate-floatOrb">
                   {/* Outer glow ring */}
-                  <span className="absolute inset-[-8px] sm:inset-[-12px] rounded-full border border-violet-500/20 animate-ringPulse" />
-                  <span className="absolute inset-[-16px] sm:inset-[-24px] rounded-full border border-violet-500/10 animate-ringPulse delay-300" />
+                  <span className="absolute inset-[-8px] sm:inset-[-12px] rounded-full border border-[var(--brand-main)]/20 animate-ringPulse" />
+                  <span className="absolute inset-[-16px] sm:inset-[-24px] rounded-full border border-[var(--brand-main)]/10 animate-ringPulse delay-300" />
                   {/* Orb body */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gray-600 via-[#1c1c2e] to-black border border-white/10 shadow-2xl animate-orbGlow overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-transparent -skew-x-12 translate-x-[-120%] animate-[shimmer_3s_ease-in-out_infinite]" />
-                    <div className="absolute inset-0 rounded-full" style={{background:'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.12), transparent 65%)'}} />
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[var(--brand-light)] via-[var(--brand-main)] to-[var(--brand-dark)] border border-white/20 shadow-xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent -skew-x-12 translate-x-[-120%] animate-[shimmer_3s_ease-in-out_infinite]" />
+                    <div className="absolute inset-0 rounded-full" style={{background:'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.4), transparent 65%)'}} />
                   </div>
                 </div>
 
                 {/* Headline */}
                 <div className="text-center space-y-1 sm:space-y-2 mb-6 sm:mb-10 px-4">
-                  <h2 className="text-sm sm:text-lg text-gray-500 font-medium tracking-widest uppercase animate-fadeInUp delay-150">Let's get started.</h2>
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl text-white font-semibold tracking-tight animate-fadeInUp delay-225">How Can I Assist You Today?</h1>
+                  <h2 className="text-sm sm:text-lg text-[var(--brand-main)] font-semibold tracking-widest uppercase animate-fadeInUp delay-150">Let's get started.</h2>
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--user-text)] font-extrabold tracking-tight animate-fadeInUp delay-225">How Can I Assist You Today?</h1>
                 </div>
 
                 {/* Quick-action suggestion cards — 1 col mobile, 3 col sm+ */}
@@ -1738,13 +1750,13 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                       key={card.label}
                       type="button"
                       onClick={() => handleSendMessage(card.label, 'text')}
-                      className="glass-pill rounded-xl sm:rounded-2xl p-3 sm:p-4 text-left group hover:border-violet-500/40 hover:shadow-glow transition-all duration-300 animate-chipBounce flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0"
+                      className="bg-white border border-[var(--border)] rounded-xl sm:rounded-2xl p-4 sm:p-5 text-left group hover:border-[var(--brand-main)] hover:shadow-lg transition-all duration-300 animate-chipBounce flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0 shadow-sm"
                       style={{ animationDelay: `${300 + i * 80}ms` }}
                     >
                       <div className="text-xl sm:text-2xl sm:mb-2 group-hover:scale-110 transition-transform duration-200 shrink-0">{card.icon}</div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-200 group-hover:text-white transition-colors">{card.label}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{card.sub}</p>
+                        <p className="text-sm font-semibold text-[var(--user-text)] group-hover:text-[var(--brand-dark)] transition-colors">{card.label}</p>
+                        <p className="text-xs text-gray-600 mt-0.5">{card.sub}</p>
                       </div>
                     </button>
                   ))}
@@ -1844,16 +1856,26 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
   );
 }
 
-function LogoutButton() {
-  const { logout } = useAuth();
+function LogoutButton({ onToggleProfile }) {
+  const { user } = useAuth();
+  const initial = user?.email ? user.email.charAt(0).toUpperCase() : 'U';
+
   return (
-    <button
-      onClick={logout}
-      title="Sign out"
-      className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-wider rounded-full border border-stakely-border bg-stakely-surface-light text-gray-400 hover:text-red-400 hover:border-red-500/40 transition-colors"
-    >
-      <ArrowRightOnRectangleIcon className="w-3.5 h-3.5" />
-      <span className="hidden sm:inline">Sign out</span>
-    </button>
+    <div className="flex items-center gap-3">
+      {/* User Profile Avatar - Clickable to open Popover */}
+      {user && (
+        <button 
+          onClick={onToggleProfile}
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[var(--brand-main)] to-[var(--brand-dark)] flex items-center justify-center text-white font-bold text-xs shadow-md border border-white/10 overflow-hidden hover:ring-2 hover:ring-[var(--brand-main)]/50 transition-all active:scale-95" 
+          title={user.email || 'User'}
+        >
+          {user.photoURL ? (
+            <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+          ) : (
+            initial
+          )}
+        </button>
+      )}
+    </div>
   );
 }

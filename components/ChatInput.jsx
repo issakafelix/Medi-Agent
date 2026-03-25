@@ -59,7 +59,7 @@ export default function ChatInput({
     <div
       className={`px-3 sm:px-6 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:pt-4 sm:pb-8 bg-transparent flex justify-center`}
     >
-      <div className={`w-full max-w-3xl flex flex-col p-[2px] transition-all duration-300 glass-pill rounded-[2rem] focus-within:shadow-glow focus-within:border-violet-500/30`}>
+      <div className={`w-full max-w-3xl flex flex-col p-[2px] transition-all duration-300 bg-white border border-[var(--border)] rounded-[2rem] focus-within:shadow-lg focus-within:border-[var(--brand-main)]/50 shadow-sm`}>
         <div className="flex flex-col p-3 pt-3">
           {/* Preset Chips */}
           {promptPresets.length > 0 && (
@@ -126,9 +126,7 @@ export default function ChatInput({
             disabled={isLoading || isListening}
             rows="1"
             style={{ maxHeight: '160px' }}
-            className={`w-full bg-transparent border-0 outline-none resize-none px-3 pt-2 pb-1 text-[16px] sm:text-base ${
-              isDarkMode ? 'text-white placeholder-gray-500' : 'text-gray-900 placeholder-gray-500'
-            } disabled:opacity-50`}
+            className={`w-full bg-transparent border-0 outline-none resize-none px-3 pt-2 pb-1 text-[16px] sm:text-base text-[var(--user-text)] placeholder-gray-500 disabled:opacity-50`}
           />
 
           <div className="flex items-center justify-between mt-1 px-1">
@@ -137,9 +135,7 @@ export default function ChatInput({
                 type="button"
                 onClick={handlePickAttachment}
                 disabled={isLoading || isListening}
-                className={`p-2.5 rounded-full transition-colors ${
-                  isDarkMode ? 'text-gray-400 hover:bg-gray-700/50 hover:text-gray-200' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
-                }`}
+                className={`p-2.5 rounded-full transition-colors text-gray-400 hover:bg-[var(--brand-light)] hover:text-[var(--brand-main)]`}
               >
                 <PlusIcon className="w-5 h-5" />
               </button>
@@ -155,7 +151,7 @@ export default function ChatInput({
                     className={`p-2.5 rounded-full transition-colors ${
                       isListening
                         ? 'bg-red-500/20 text-red-500 animate-pulse'
-                        : isDarkMode ? 'text-gray-400 hover:bg-gray-700/50 hover:text-gray-200' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                        : 'text-gray-400 hover:bg-[var(--brand-light)] hover:text-[var(--brand-main)]'
                     }`}
                   >
                     <MicrophoneIcon className="w-5 h-5" />
@@ -167,8 +163,8 @@ export default function ChatInput({
                   disabled={!input.trim() || isLoading}
                   className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${
                     !input.trim() || isLoading
-                      ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                      : 'bg-stakely-accent text-white shadow-glow hover:brightness-110'
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-[var(--brand-main)] text-white shadow-lg hover:bg-[var(--brand-dark)]'
                   }`}
                 >
                   <ArrowUpIcon className="w-4 h-4 stroke-2" />

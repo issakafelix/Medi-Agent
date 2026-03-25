@@ -60,26 +60,7 @@ export default function Message({
         }`}
       >
         <div className={`flex items-end gap-2 sm:gap-3 ${isBot ? 'flex-row' : 'flex-row-reverse'}`}>
-          {/* Avatar */}
-          <div
-            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-sm flex items-center justify-center flex-shrink-0 ${
-              isBot ? 'bg-stakely-surface-light border border-stakely-border/50' : 'bg-gray-800 border border-gray-700 text-white'
-            }`}
-            role="img"
-          >
-            {isBot ? (
-              <img
-                src="/chat-con.png"
-                alt="Assistant avatar"
-                className="w-full h-full rounded-full object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <span className={`text-sm sm:text-base font-medium ${isDarkMode ? 'text-teal-400' : 'text-teal-600'}`}>
-                {message.avatar || 'U'}
-              </span>
-            )}
-          </div>
+
 
           {/* Message Bubble */}
           <div
@@ -87,8 +68,8 @@ export default function Message({
               ${hasError ? 'border-2 border-red-500' : ''}
               ${
                 isBot 
-                  ? 'bg-transparent text-gray-200 rounded-tr-2xl rounded-tl-2xl rounded-br-2xl rounded-bl-sm hover:bg-white/5 hover:border-violet-500/20 border border-transparent' 
-                  : 'bg-stakely-surface-light text-gray-200 rounded-2xl border border-stakely-border hover:border-violet-500/30 hover:shadow-glow'
+                  ? 'bg-[var(--brand-main)] text-[var(--bot-text)] rounded-tr-2xl rounded-tl-2xl rounded-br-2xl rounded-bl-[2px] shadow-md border border-[var(--brand-dark)]' 
+                  : 'bg-[var(--user-bubble)] text-[var(--user-text)] rounded-2xl border border-[var(--border)] rounded-br-[2px] shadow-sm'
               }`}
           >
             <ReactMarkdown
@@ -167,12 +148,12 @@ export default function Message({
 
         {/* Footer Actions & Timestamp */}
         <div className={`flex items-center gap-3 mt-1 px-12 ${isBot ? 'justify-start' : 'justify-end'}`}>
-          <span className={`text-[11px] font-medium transition-opacity ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          <span className={`text-[11px] font-medium transition-opacity ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
             {formatTime(message?.timestamp)}
           </span>
 
           {!hasError && ((isBot && (onCopy || onRegenerate || onLike || onDislike)) || (!isBot && (onEdit || onCopy))) && (
-            <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>
+            <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
               {!isBot && onEdit && (
                 <button onClick={onEdit} className="p-1 hover:text-teal-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" title="Edit">
                   <PencilSquareIcon className="w-3.5 h-3.5" />
