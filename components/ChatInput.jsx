@@ -69,10 +69,10 @@ export default function ChatInput({
                    key={preset.key}
                    type="button"
                    onClick={() => onPromptPresetChange?.(preset.key)}
-                   className={`flex items-center gap-1.5 px-3 py-1 bg-transparent rounded-full text-[11px] font-medium transition-colors border ${
+                   className={`flex items-center gap-1.5 px-3 py-1 bg-transparent rounded-full text-[11px] font-semibold transition-all border whitespace-nowrap shadow-sm ${
                      promptPresetKey === preset.key
-                       ? 'text-white border-stakely-border bg-stakely-surface shadow-glow'
-                       : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-gray-800/30'
+                       ? 'text-white border-[var(--brand-main)] bg-[var(--brand-main)]'
+                       : 'text-gray-600 border-gray-200 bg-white hover:bg-gray-50'
                    }`}
                  >
                    {preset.label}

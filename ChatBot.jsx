@@ -1722,7 +1722,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                <div className="w-full h-full flex flex-col items-center justify-center px-4 sm:px-8 animate-fadeInUp">
 
                 {/* Floating glowing orb */}
-                <div className="relative w-24 h-24 sm:w-36 sm:h-36 mb-6 sm:mb-10 animate-floatOrb">
+                <div className="relative w-20 h-20 sm:w-36 sm:h-36 mb-4 sm:mb-10 animate-floatOrb">
                   {/* Outer glow ring */}
                   <span className="absolute inset-[-8px] sm:inset-[-12px] rounded-full border border-[var(--brand-main)]/20 animate-ringPulse" />
                   <span className="absolute inset-[-16px] sm:inset-[-24px] rounded-full border border-[var(--brand-main)]/10 animate-ringPulse delay-300" />
@@ -1734,9 +1734,9 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                 </div>
 
                 {/* Headline */}
-                <div className="text-center space-y-1 sm:space-y-2 mb-6 sm:mb-10 px-4">
-                  <h2 className="text-sm sm:text-lg text-[var(--brand-main)] font-semibold tracking-widest uppercase animate-fadeInUp delay-150">Let's get started.</h2>
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--user-text)] font-extrabold tracking-tight animate-fadeInUp delay-225">How Can I Assist You Today?</h1>
+                <div className="text-center space-y-1 sm:space-y-2 mb-4 sm:mb-10 px-4">
+                  <h2 className="text-[10px] sm:text-xs text-[var(--brand-main)] font-bold tracking-[0.2em] uppercase animate-fadeInUp delay-150">Let's get started</h2>
+                  <h1 className="text-2xl sm:text-4xl md:text-5xl text-[var(--user-text)] font-extrabold tracking-tight animate-fadeInUp delay-225 leading-tight">How Can I Assist You Today?</h1>
                 </div>
 
                 {/* Quick-action suggestion cards — 1 col mobile, 3 col sm+ */}
