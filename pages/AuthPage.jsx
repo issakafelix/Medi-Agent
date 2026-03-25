@@ -63,11 +63,11 @@ export default function AuthPage() {
       <div className="relative z-10 w-full max-w-[420px] group">
         
         {/* Animated Border Glow Wrapper */}
-        <div className="absolute -inset-[2px] rounded-[2.5rem] bg-gradient-to-r from-[var(--brand-main)] via-[#34d399] to-[var(--brand-main)] opacity-50 blur-lg group-hover:opacity-100 transition duration-1000 animate-[gradient-shift_3s_ease_infinite]" style={{ backgroundSize: '200% 200%' }}></div>
+        <div className="absolute -inset-[2px] rounded-[2.5rem] bg-gradient-to-r from-[var(--brand-main)] via-[#fbbf24] to-[#0ea5e9] opacity-70 blur-xl group-hover:opacity-100 transition duration-1000 animate-[gradient-shift_3s_ease_infinite]" style={{ backgroundSize: '200% 200%' }}></div>
         
         {/* Rotating Border Beam */}
-        <div className="absolute -inset-[1.5px] rounded-[2.5rem] overflow-hidden opacity-80">
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] aspect-square bg-[conic-gradient(from_0deg,transparent_0_300deg,var(--brand-main)_340deg,white_360deg)] animate-[spin_4s_linear_infinite]"></div>
+        <div className="absolute -inset-[1.5px] rounded-[2.5rem] overflow-hidden opacity-90">
+           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] aspect-square bg-[conic-gradient(from_0deg,transparent_0_300deg,var(--brand-main)_310deg,#fbbf24_340deg,white_360deg)] animate-[spin_4s_linear_infinite]"></div>
         </div>
 
         {/* Glassmorphic Card */}
