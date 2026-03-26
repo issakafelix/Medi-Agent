@@ -88,7 +88,7 @@ def create_app() -> FastAPI:
             except Exception as e:
                 logging.getLogger("uvicorn.error").error(f"Failed to initialize Firebase Admin: {e}")
         else:
-            logging.getLogger("uvicorn.error").warning("Running WARNING: FIREBASE_SERVICE_ACCOUNT_JSON not provided. Authentication will throw 500 errors if hit.")
+            logging.getLogger("uvicorn.error").warning("CRITICAL WARNING: FIREBASE_SERVICE_ACCOUNT_JSON not provided. Backend cannot verify users. Chat and history will fail. Set this variable on Render.")
 
     @app.get("/health")
     def health():

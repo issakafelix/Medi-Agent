@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { UserIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 
 export default function AuthPage() {
-  const { loginWithEmail, signupWithEmail, loginWithGoogle } = useAuth();
+  const { loginWithEmail, signupWithEmail, loginWithGoogleRedirect, resetPassword } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,7 +31,23 @@ export default function AuthPage() {
     setError('');
     setLoading(true);
     try {
-      await loginWithGoogle();
+      await loginWithGoogleRedirect();
+    } catch (err) {
+      setError(friendlyError(err.code));
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your email address first.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      await resetPassword(email);
+      setError('Password reset email sent! Please check your inbox.');
     } catch (err) {
       setError(friendlyError(err.code));
     } finally {
@@ -126,7 +142,11 @@ export default function AuthPage() {
                   </div>
                   Remember me
                 </label>
-                <button type="button" className="hover:text-[var(--brand-main)] transition-colors hover:underline">
+                <button 
+                  type="button" 
+                  onClick={handleForgotPassword}
+                  className="hover:text-[var(--brand-main)] transition-colors hover:underline"
+                >
                   Forgot password?
                 </button>
               </div>
@@ -192,19 +212,20 @@ export default function AuthPage() {
 
 function friendlyError(code) {
   const map = {
-    'auth/user-not-found': 'No account found with this email.',
+    'auth/user-not-found': 'No account found with this email. Please Register first.',
     'auth/wrong-password': 'Incorrect password. Try again.',
     'auth/email-already-in-use': 'An account with this email already exists.',
     'auth/weak-password': 'Password must be at least 6 characters.',
     'auth/invalid-email': 'Please enter a valid email address.',
     'auth/too-many-requests': 'Too many attempts. Please try again later.',
     'auth/popup-closed-by-user': 'Google sign-in was cancelled.',
-    'auth/invalid-credential': 'Invalid email or password.',
-    'auth/operation-not-allowed': 'Google Sign-In is not enabled in your Firebase console.',
+    'auth/invalid-credential': 'Invalid email or password. If you haven\'t created an account yet, please use the Register tab. If you previously used Google, please sign in with Google.',
+    'auth/email-already-in-use': 'An account with this email already exists. Try Logging in or use "Forgot password?".',
+    'auth/operation-not-allowed': 'This sign-in method is not enabled in your Firebase console.',
     'auth/unauthorized-domain': 'This domain is not authorized for Firebase Auth. Please check your Firebase authorized domains list.',
   };
   if (code && !map[code]) {
-    return `${map[code] ?? 'Something went wrong.'} (Error code: ${code})`;
+    return `Error: ${code}. Please check your connection or Firebase console.`;
   }
   return map[code] ?? 'Something went wrong. Please try again.';
 }

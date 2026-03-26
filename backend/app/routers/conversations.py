@@ -12,6 +12,7 @@ from ..schemas import (
     ConversationSummary,
     OkResponse,
 )
+from ..auth import get_current_user
 
 router = APIRouter(tags=["conversations"])
 
