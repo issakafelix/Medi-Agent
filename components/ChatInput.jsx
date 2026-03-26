@@ -57,9 +57,9 @@ export default function ChatInput({
 
   return (
     <div
-      className={`px-3 sm:px-6 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:pt-4 sm:pb-8 bg-transparent flex justify-center`}
+      className={`px-4 sm:px-6 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:pt-4 sm:pb-12 bg-transparent flex justify-center sticky bottom-0 z-20`}
     >
-      <div className={`w-full max-w-3xl flex flex-col p-[2px] transition-all duration-300 bg-white border border-[var(--border)] rounded-[2rem] focus-within:shadow-lg focus-within:border-[var(--brand-main)]/50 shadow-sm`}>
+      <div className={`w-full max-w-[--max-content-width] flex flex-col p-[1px] transition-all duration-300 bg-[var(--user-bubble)] border border-[var(--border)] rounded-[2.5rem] focus-within:border-[var(--text-muted)] shadow-lg`}>
         <div className="flex flex-col p-3 pt-3">
           {/* Preset Chips */}
           {promptPresets.length > 0 && (
@@ -121,12 +121,12 @@ export default function ChatInput({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
-              isListening ? 'Speak now...' : isImageMode ? 'Describe the image...' : 'Ask Health Assistant'
+              isListening ? 'Speak now...' : isImageMode ? 'Describe the image...' : 'Message Health Assistant'
             }
             disabled={isLoading || isListening}
             rows="1"
-            style={{ maxHeight: '160px' }}
-            className={`w-full bg-transparent border-0 outline-none resize-none px-3 pt-2 pb-1 text-[16px] sm:text-base text-[var(--user-text)] placeholder-gray-500 disabled:opacity-50`}
+            style={{ maxHeight: '200px' }}
+            className={`w-full bg-transparent border-0 outline-none resize-none px-4 pt-4 pb-2 text-[16px] sm:text-[17px] text-[var(--text-main)] placeholder-[var(--text-muted)] disabled:opacity-50`}
           />
 
           <div className="flex items-center justify-between mt-1 px-1">

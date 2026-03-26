@@ -55,7 +55,7 @@ export default function Message({
       } animate-fadeInUp my-3 sm:my-5 px-3 sm:px-6`}
     >
       <div 
-        className={`flex max-w-[90%] sm:max-w-[80%] md:max-w-3xl flex-col gap-1 group ${
+        className={`flex w-full max-w-[--max-content-width] flex-col gap-2 group ${
           isBot ? 'items-start' : 'items-end'
         }`}
       >
@@ -64,12 +64,12 @@ export default function Message({
 
           {/* Message Bubble */}
           <div
-            className={`relative px-4 sm:px-5 py-3 sm:py-4 shadow-sm text-[15px] sm:text-base leading-relaxed break-words transition-all duration-300
-              ${hasError ? 'border-2 border-red-500' : ''}
+            className={`relative w-full px-1 py-1 text-[15px] sm:text-[16px] leading-relaxed break-words transition-all duration-300
+              ${hasError ? 'border-l-2 border-red-500 pl-4' : ''}
               ${
                 isBot 
-                  ? 'bg-[var(--brand-main)] text-[var(--bot-text)] rounded-tr-2xl rounded-tl-2xl rounded-br-2xl rounded-bl-[2px] shadow-md border border-[var(--brand-dark)]' 
-                  : 'bg-[var(--user-bubble)] text-[var(--user-text)] rounded-2xl border border-[var(--border)] rounded-br-[2px] shadow-sm'
+                  ? 'text-[var(--text-main)]' 
+                  : 'bg-[var(--user-bubble)] px-4 py-3 rounded-2xl text-[var(--text-main)] self-end max-w-[85%]'
               }`}
           >
             <ReactMarkdown
@@ -147,10 +147,12 @@ export default function Message({
         </div>
 
         {/* Footer Actions & Timestamp */}
-        <div className={`flex items-center gap-3 mt-1 px-12 ${isBot ? 'justify-start' : 'justify-end'}`}>
-          <span className={`text-[11px] font-medium transition-opacity ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-            {formatTime(message?.timestamp)}
-          </span>
+        <div className={`flex items-center gap-3 mt-1 ${isBot ? 'justify-start' : 'justify-end'}`}>
+          {isBot && (
+            <span className={`text-[11px] font-medium text-[var(--text-muted)]`}>
+               {formatTime(message?.timestamp)}
+            </span>
+          )}
 
           {!hasError && ((isBot && (onCopy || onRegenerate || onLike || onDislike)) || (!isBot && (onEdit || onCopy))) && (
             <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>

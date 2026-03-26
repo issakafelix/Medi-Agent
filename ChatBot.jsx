@@ -1562,27 +1562,21 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
             onClick={() => setIsSidebarOpen(false)}
           />
           <div
-            className="absolute left-0 top-0 h-full w-72 max-w-[85vw] flex flex-col animate-slideInRight motion-reduce:animate-none bg-[#0B0B0E] border-r border-stakely-border shadow-2xl"
+            className="absolute left-0 top-0 h-full w-72 max-w-[85vw] flex flex-col animate-slideInRight motion-reduce:animate-none bg-[var(--bg-sidebar)] border-r border-[var(--border)] shadow-2xl"
             role="dialog"
             aria-modal="true"
             aria-label="Chat history"
           >
             <div
-              className={`h-14 px-3 flex items-center justify-between border-b ${
-                isDarkMode ? 'border-gray-700' : 'border-gray-200'
-              }`}
+              className={`h-14 px-3 flex items-center justify-between border-b border-[var(--border)]`}
             >
-              <span className={`${isDarkMode ? 'text-white' : 'text-black'} font-semibold`}>
-                Chats
+              <span className={`text-[var(--text-main)] font-semibold`}>
+                History
               </span>
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen(false)}
-                className={`p-2 rounded-xl transition-all duration-200 ${
-                  isDarkMode
-                    ? 'hover:bg-gray-700 text-gray-300'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
+                className={`p-2 rounded-xl transition-all duration-200 hover:bg-[var(--user-bubble)] text-[var(--text-muted)]`}
                 aria-label="Close sidebar"
               >
                 <XMarkIcon className="w-5 h-5" />
@@ -1612,37 +1606,39 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Header */}
-        <header className="shrink-0 pt-[env(safe-area-inset-top)] pb-4 sm:pb-6 bg-transparent">
-          <div className="px-3 sm:px-4 py-2 sm:py-4 flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-4">
+        <header className="shrink-0 pt-[env(safe-area-inset-top)] bg-[var(--bg-color)]/80 backdrop-blur-md sticky top-0 z-30 transition-colors">
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
                {/* Mobile hamburger */}
-               <button onClick={() => setIsSidebarOpen(true)} className={`lg:hidden p-1.5 text-gray-400 hover:text-white transition-colors`}>
-                 <Bars3Icon className="w-5 h-5" />
+               <button onClick={() => setIsSidebarOpen(true)} className={`lg:hidden p-2 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors`}>
+                 <Bars3Icon className="w-6 h-6" />
                </button>
                {/* Desktop sidebar toggle */}
-               <button
-                 onClick={() => setIsDesktopSidebarOpen(prev => !prev)}
-                 className="hidden lg:flex p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200"
-                 aria-label={isDesktopSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-               >
-                 <Bars3Icon className="w-5 h-5" />
-               </button>
-               <div className="flex items-center gap-1.5 sm:gap-2">
-                 <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-[var(--brand-main)] shadow-md flex items-center justify-center shrink-0">
-                   <span className="text-white text-[10px] font-bold italic">E</span>
-                 </div>
-                 <span className="text-sm sm:text-[16px] font-semibold tracking-tight text-[var(--user-text)] whitespace-nowrap">
-                                       EmeraldBot 1.0
+               {!isDesktopSidebarOpen && (
+                 <button
+                   onClick={() => setIsDesktopSidebarOpen(true)}
+                   className="hidden lg:flex p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--user-bubble)] transition-all duration-200"
+                   aria-label="Expand sidebar"
+                 >
+                   <Bars3Icon className="w-6 h-6" />
+                 </button>
+               )}
+               <div className="flex items-center gap-2 px-2">
+                 <span className="text-[18px] font-medium tracking-tight text-[var(--text-main)]">
+                                       Health Assistant
                  </span>
+                 <svg className="w-4 h-4 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                 </svg>
                </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 relative">
                <button 
                  onClick={() => setShowAboutModal(true)}
-                 className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-wider rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-300 hover:text-white hover:bg-purple-500/30 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all flex items-center gap-1.5"
+                 className="p-2 text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--user-bubble)] rounded-lg transition-all"
+                 title="About"
                >
-                 <InformationCircleIcon className="w-3.5 h-3.5" />
-                 <span className="hidden xs:inline sm:inline">About</span>
+                 <InformationCircleIcon className="w-6 h-6" />
                </button>
 
                <LogoutButton onToggleProfile={() => setIsProfileOpen(!isProfileOpen)} />
@@ -1717,46 +1713,40 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
               </React.Fragment>
             ))}
 
-            {/* Empty State – Animated Orb + Staggered Cards */}
+            {/* Empty State – Minimalist ChatGPT style */}
             {messages.length === 0 && !isLoading && (
-               <div className="w-full h-full flex flex-col items-center justify-center px-4 sm:px-8 animate-fadeInUp">
-
-                {/* Floating glowing orb */}
-                <div className="relative w-20 h-20 sm:w-36 sm:h-36 mb-4 sm:mb-10 animate-floatOrb">
-                  {/* Outer glow ring */}
-                  <span className="absolute inset-[-8px] sm:inset-[-12px] rounded-full border border-[var(--brand-main)]/20 animate-ringPulse" />
-                  <span className="absolute inset-[-16px] sm:inset-[-24px] rounded-full border border-[var(--brand-main)]/10 animate-ringPulse delay-300" />
-                  {/* Orb body */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[var(--brand-light)] via-[var(--brand-main)] to-[var(--brand-dark)] border border-white/20 shadow-xl overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent -skew-x-12 translate-x-[-120%] animate-[shimmer_3s_ease-in-out_infinite]" />
-                    <div className="absolute inset-0 rounded-full" style={{background:'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.4), transparent 65%)'}} />
-                  </div>
+               <div className="w-full h-full flex flex-col items-center justify-center px-4 pt-12 sm:pt-24 animate-fadeIn">
+                {/* Logo or Icon */}
+                <div className="w-12 h-12 rounded-full border border-[var(--border)] flex items-center justify-center mb-6 shadow-sm">
+                   <div className="w-8 h-8 rounded bg-[var(--brand-main)] flex items-center justify-center">
+                     <span className="text-white font-bold italic text-sm">H</span>
+                   </div>
                 </div>
 
                 {/* Headline */}
-                <div className="text-center space-y-1 sm:space-y-2 mb-4 sm:mb-10 px-4">
-                  <h2 className="text-[10px] sm:text-xs text-[var(--brand-main)] font-bold tracking-[0.2em] uppercase animate-fadeInUp delay-150">Let's get started</h2>
-                  <h1 className="text-2xl sm:text-4xl md:text-5xl text-[var(--user-text)] font-extrabold tracking-tight animate-fadeInUp delay-225 leading-tight">How Can I Assist You Today?</h1>
+                <div className="text-center mb-8 px-4">
+                  <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text-main)] tracking-tight">How can I help you today?</h1>
                 </div>
 
-                {/* Quick-action suggestion cards — 1 col mobile, 3 col sm+ */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 w-full max-w-2xl">
+                {/* Quick-action suggestion cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 w-full max-w-xl px-4">
                   {[
                     { icon: '🩺', label: 'Check my symptoms', sub: 'Describe how you feel' },
                     { icon: '💊', label: 'Medication advice',  sub: 'Dosage & interactions' },
                     { icon: '🧠', label: 'Mental wellness',    sub: 'Stress, sleep & mood' },
+                    { icon: '🥗', label: 'Nutrition tips',     sub: 'Healthy eating habits' },
                   ].map((card, i) => (
                     <button
                       key={card.label}
                       type="button"
                       onClick={() => handleSendMessage(card.label, 'text')}
-                      className="bg-white border border-[var(--border)] rounded-xl sm:rounded-2xl p-4 sm:p-5 text-left group hover:border-[var(--brand-main)] hover:shadow-lg transition-all duration-300 animate-chipBounce flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0 shadow-sm"
-                      style={{ animationDelay: `${300 + i * 80}ms` }}
+                      className="bg-transparent border border-[var(--border)] rounded-2xl p-4 text-left group hover:bg-[var(--user-bubble)] transition-all duration-200 flex items-center gap-3"
+                      style={{ animationDelay: `${200 + i * 50}ms` }}
                     >
-                      <div className="text-xl sm:text-2xl sm:mb-2 group-hover:scale-110 transition-transform duration-200 shrink-0">{card.icon}</div>
-                      <div>
-                        <p className="text-sm font-semibold text-[var(--user-text)] group-hover:text-[var(--brand-dark)] transition-colors">{card.label}</p>
-                        <p className="text-xs text-gray-600 mt-0.5">{card.sub}</p>
+                      <div className="text-2xl shrink-0">{card.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[var(--text-main)] truncate">{card.label}</p>
+                        <p className="text-xs text-[var(--text-muted)] truncate">{card.sub}</p>
                       </div>
                     </button>
                   ))}

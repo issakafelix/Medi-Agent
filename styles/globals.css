@@ -3,22 +3,31 @@
 @tailwind utilities;
 
 :root {
-  /* Emerald Theme Variables */
-  --brand-main: #059669;      /* Emerald Green */
-  --brand-dark: #065f46;      /* Deep Forest */
-  --brand-light: #ecfdf5;     /* Very Light Mint */
-  --bg-color: #f1f5f9;        /* Light Slate background */
-  --bot-text: #ffffff;
-  --user-bubble: #e2e8f0;     /* Light Grey for User */
-  --user-text: #0f172a;
-  --input-bg: #ffffff;
-  --border: #cbd5e1;
+  /* ChatGPT-inspired Design Tokens (Light Mode) */
+  --brand-main: #10a37f;      /* GPT Green */
+  --brand-dark: #0e8a6d;
+  --brand-light: #d1f7ec;
+  --bg-color: #ffffff;
+  --bg-sidebar: #f9f9f9;     /* Off-white sidebar */
+  --text-main: #0d0d0d;
+  --text-muted: #676767;
+  --border: #e5e5e5;
+  --user-bubble: #f4f4f4;
+  --assistant-bg: transparent; /* Assistants blend into feed */
+  
+  /* Layout */
+  --max-content-width: 768px;
+}
 
-  /* Legacy overrides for Tailwind compatibility */
-  --stakely-bg: var(--bg-color);
-  --stakely-surface: var(--input-bg);
-  --stakely-border: var(--border);
-  --stakely-accent: var(--brand-main);
+.dark {
+  /* ChatGPT-inspired Design Tokens (Dark Mode) */
+  --bg-color: #212121;
+  --bg-sidebar: #171717;     /* Matte black sidebar */
+  --text-main: #ececec;
+  --text-muted: #b4b4b4;
+  --border: #383838;
+  --user-bubble: #2f2f2f;
+  --assistant-bg: transparent;
 }
 
 @layer base {
@@ -28,11 +37,8 @@
 
   body {
     @apply antialiased overflow-hidden m-0 p-0;
-    color: var(--user-text);
+    color: var(--text-main);
     background-color: var(--bg-color);
-    background-image: radial-gradient(var(--brand-light) 0.5px, transparent 0.5px);
-    background-size: 20px 20px;
-    background-attachment: fixed;
   }
 }
 
@@ -126,39 +132,10 @@
   }
 }
 
-/* Glassmorphism utility */
-.glass {
-  background: rgba(18, 19, 26, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+/* Focus ring utility */
+.focus-ring {
+  outline: none;
 }
-
-.glass-pill {
-  background: rgba(11, 11, 14, 0.8);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.glass-light {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* Gradient text utility */
-.gradient-text {
-  background: linear-gradient(135deg, #a855f7 0%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 6px;
 }
