@@ -6,7 +6,6 @@ import { TrashIcon } from '@heroicons/react/24/outline';
  * Can be integrated into main ChatBot component when expanded
  */
 export default function ChatHistory({
-  isDarkMode,
   onSelectChat,
   currentChatId,
   onNewChat,
@@ -16,16 +15,7 @@ export default function ChatHistory({
 }) {
   const items = Array.isArray(conversations) ? conversations : [];
 
-  const formatRelative = (date) => {
-    const d = date instanceof Date ? date : new Date(date);
-    const diffMs = Date.now() - d.getTime();
-    const diffDays = Math.floor(diffMs / 86400000);
-    if (diffDays <= 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    const weeks = Math.floor(diffDays / 7);
-    return `${weeks} week${weeks === 1 ? '' : 's'} ago`;
-  };
+  // formatRelative removed — not currently used
 
   return (
     <aside

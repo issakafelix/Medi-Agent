@@ -9,18 +9,11 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import SearchModal from './components/SearchModal';
 import AboutModal from './components/AboutModal';
 import ResponseTimeIndicator from './components/ResponseTimeIndicator';
-import ProfilePopover from './components/ProfilePopover';
-import UserAccountModal from './components/UserAccountModal';
+// Profile/account UI removed
+// auth context removed
 import { useVoiceInput, useAutoSaveDraft, useSuggestedPrompts } from './hooks/useAIFeatures';
-import { useAuth } from './contexts/AuthContext';
-import {
-  SunIcon,
-  MoonIcon,
-  Bars3Icon,
-  XMarkIcon,
-  InformationCircleIcon,
-  ArrowRightOnRectangleIcon,
-} from '@heroicons/react/24/outline';
+
+import { Bars3Icon, XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import {
   describeImage,
   sendMessage,
@@ -152,8 +145,6 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const requestStartTimeRef = useRef(null);
 
   const inputRef = useRef(null);
@@ -228,32 +219,6 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
   );
   const suggestedFollowUps = useSuggestedPrompts(lastBotMessage, lastUserMessage);
   
-
-  useEffect(() => {
-    async function initHistory() {
-      try {
-        const result = await getConversations(50);
-        if (result && result.conversations && result.conversations.length > 0) {
-          const loadedChats = result.conversations.map((c, i) => ({
-            id: 10000 + i,
-            title: c.title || 'Chat',
-            updatedAt: new Date(c.updated_at),
-            conversationId: c.id,
-            backendLoaded: false,
-            messages: []
-          }));
-          setChats(prev => {
-            const currentNew = prev.filter(p => p.id === currentChatId && !p.conversationId);
-            return currentNew.length ? [...currentNew, ...loadedChats] : loadedChats;
-          });
-        }
-      } catch (err) {
-        console.error('Failed to load history', err);
-      }
-    }
-    initHistory();
-  }, []); // Only run once on mount
-
 
   // Load saved draft on chat switch
   useEffect(() => {
@@ -474,6 +439,12 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!currentChat?.conversationId || currentChat.backendLoaded) return;
+    loadConversationIfNeeded(currentChat.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentChat?.id, currentChat?.conversationId, currentChat?.backendLoaded]);
 
   // Initialize theme from storage / system (uncontrolled mode only)
   useEffect(() => {
@@ -1398,19 +1369,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
     });
   };
 
-  const suggestedPrompts = useMemo(
-    () => [
-      'I have a persistent headache and fever.',
-      'What are the symptoms of strep throat?',
-      'How can I treat a minor burn at home?',
-      'Should I go to the hospital for chest pain?',
-      'Can you recommend a good local pediatrician?',
-      'What are the side effects of Ibuprofen?',
-    ],
-    []
-  );
-
-  const hasUserMessages = messages.some((m) => m.sender === 'user');
+  // Removed unused quick suggestion list — suggestions are produced by the backend or AI hook
 
   const handleNewChat = () => {
     setIsLoading(false);
@@ -1641,21 +1600,13 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                  <InformationCircleIcon className="w-6 h-6" />
                </button>
 
-               <LogoutButton onToggleProfile={() => setIsProfileOpen(!isProfileOpen)} />
-               <ProfilePopover 
-                 isOpen={isProfileOpen} 
-                 onClose={() => setIsProfileOpen(false)} 
-                 onOpenAccount={() => setIsAccountModalOpen(true)}
-               />
+               <HeaderLogo />
             </div>
           </div>
         </header>
 
         {/* Modals */}
-        <UserAccountModal 
-          isOpen={isAccountModalOpen} 
-          onClose={() => setIsAccountModalOpen(false)} 
-        />
+        {/* Account modal removed */}
 
         {/* Toast */}
         {toast && (
@@ -1846,26 +1797,16 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
   );
 }
 
-function LogoutButton({ onToggleProfile }) {
-  const { user } = useAuth();
-  const initial = user?.email ? user.email.charAt(0).toUpperCase() : 'U';
-
+// Header logo component
+function HeaderLogo() {
   return (
     <div className="flex items-center gap-3">
-      {/* User Profile Avatar - Clickable to open Popover */}
-      {user && (
-        <button 
-          onClick={onToggleProfile}
-          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[var(--brand-main)] to-[var(--brand-dark)] flex items-center justify-center text-white font-bold text-xs shadow-md border border-white/10 overflow-hidden hover:ring-2 hover:ring-[var(--brand-main)]/50 transition-all active:scale-95" 
-          title={user.email || 'User'}
-        >
-          {user.photoURL ? (
-            <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
-          ) : (
-            initial
-          )}
-        </button>
-      )}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--brand-main)] to-[var(--brand-dark)] flex items-center justify-center text-white font-bold text-sm shadow-md border border-white/10">
+          AI
+        </div>
+        <span className="hidden sm:inline-block font-bold text-sm text-[var(--user-text)]">AI Health</span>
+      </div>
     </div>
   );
 }

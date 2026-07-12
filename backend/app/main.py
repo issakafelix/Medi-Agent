@@ -81,7 +81,16 @@ def create_app() -> FastAPI:
                 import json
                 import firebase_admin
                 from firebase_admin import credentials
-                cert_dict = json.loads(settings.firebase_service_account_json)
+
+                fs = settings.firebase_service_account_json.strip()
+                path = Path(fs)
+                if path.exists():
+                    with open(path, 'r', encoding='utf-8') as fh:
+                        cert_dict = json.load(fh)
+                else:
+                    # Treat the value as JSON string
+                    cert_dict = json.loads(fs)
+
                 cred = credentials.Certificate(cert_dict)
                 firebase_admin.initialize_app(cred)
                 logging.getLogger("uvicorn.error").info("Firebase Admin initialized successfully.")

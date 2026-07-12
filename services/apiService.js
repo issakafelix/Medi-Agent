@@ -2,26 +2,41 @@
  * API Service for Chatbot
  * Centralized API calls with error handling
  */
-import { auth } from '../firebase';
+// Firebase auth removed — no auth headers used now
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ai-health-backend-mgcx.onrender.com/api';
-const IMAGE_DESCRIBE_URL = import.meta.env.VITE_IMAGE_DESCRIBE_URL || `${API_BASE_URL}/image/describe`;
-const IMAGE_GENERATE_URL = import.meta.env.VITE_IMAGE_GENERATE_URL || `${API_BASE_URL}/image/generate`;
+// Default to a relative `/api` path so the Vite dev proxy handles local requests.
+// In production use `VITE_API_URL` (see .env.production).
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
+const IMAGE_DESCRIBE_URL = import.meta.env.VITE_IMAGE_DESCRIBE_URL ?? `${API_BASE_URL}/image/describe`;
+const IMAGE_GENERATE_URL = import.meta.env.VITE_IMAGE_GENERATE_URL ?? `${API_BASE_URL}/image/generate`;
 
 /**
- * Helper function to retrieve Firebase tokens securely and map headers.
+ * Helper function to build request headers (no Firebase auth)
  */
 async function getAuthHeaders(isJson = true) {
   const headers = {};
-  if (isJson) {
-    headers['Content-Type'] = 'application/json';
-  }
-  if (auth && auth.currentUser) {
-    // Force refresh token if needed, keeping session secure
-    const token = await auth.currentUser.getIdToken();
-    headers['Authorization'] = `Bearer ${token}`;
+  if (isJson) headers['Content-Type'] = 'application/json';
+  // If a Firebase ID token has been registered (via setFirebaseIdToken), include it.
+  try {
+    const token = window.localStorage.getItem('FIREBASE_ID_TOKEN');
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  } catch (e) {
+    // ignore
   }
   return headers;
+}
+
+/**
+ * Allow app to register a Firebase ID token (e.g. after client-side sign-in).
+ * Stores token in localStorage so subsequent API requests include it.
+ */
+export function setFirebaseIdToken(token) {
+  try {
+    if (token) window.localStorage.setItem('FIREBASE_ID_TOKEN', token);
+    else window.localStorage.removeItem('FIREBASE_ID_TOKEN');
+  } catch (e) {
+    console.warn('Unable to persist Firebase ID token', e);
+  }
 }
 
 /**

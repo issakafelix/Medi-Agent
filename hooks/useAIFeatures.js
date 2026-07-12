@@ -195,7 +195,6 @@ export function useSuggestedPrompts(lastBotMessage, lastUserMessage) {
     }
 
     const text = lastBotMessage.text.toLowerCase();
-    const userText = lastUserMessage?.text?.toLowerCase() || '';
     const newSuggestions = [];
 
     // Symptom descriptions

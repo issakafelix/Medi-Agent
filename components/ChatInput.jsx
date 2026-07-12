@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
 import {
-  PaperAirplaneIcon,
   MicrophoneIcon,
   PlusIcon,
+  PhotoIcon,
   ArrowUpIcon,
 } from '@heroicons/react/24/solid';
 
@@ -138,6 +138,19 @@ export default function ChatInput({
                 className={`p-2.5 rounded-full transition-colors text-gray-400 hover:bg-[var(--brand-light)] hover:text-[var(--brand-main)]`}
               >
                 <PlusIcon className="w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => onInputModeChange?.(inputMode === 'image' ? 'text' : 'image')}
+                disabled={isLoading || isListening}
+                className={`p-2.5 rounded-full transition-colors ${
+                  inputMode === 'image'
+                    ? 'bg-[var(--brand-main)] text-white'
+                    : 'text-gray-400 hover:bg-[var(--brand-light)] hover:text-[var(--brand-main)]'
+                }`}
+                aria-label={inputMode === 'image' ? 'Switch to text mode' : 'Switch to image mode'}
+              >
+                <PhotoIcon className="w-5 h-5" />
               </button>
             </div>
             

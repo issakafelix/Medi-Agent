@@ -49,7 +49,7 @@ export default function AboutModal({ isOpen, onClose }) {
               Meet Your Personal AI Health Companion.
             </p>
             <p className="text-gray-800">
-              This app is a smart, 24/7 personal health assistant designed to help you understand your symptoms and navigate your healthcare journey with confidence. Whether you're dealing with a midnight fever, a sudden sports injury, or just have questions about a new medication, this assistant is here to guide you.
+              This app is a smart, 24/7 personal health assistant designed to help you understand your symptoms and navigate your healthcare journey with confidence. Whether you are dealing with a midnight fever, a sudden sports injury, or just have questions about a new medication, this assistant is here to guide you.
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 pt-6 border-t border-gray-900/10">

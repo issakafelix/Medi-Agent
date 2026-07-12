@@ -440,8 +440,8 @@ npm install
 
 After mastering the basics:
 1. **Add database**: Connect to MongoDB or PostgreSQL
-2. **User authentication**: Implement login/signup
-3. **Message history**: Persist conversations to database
+2. **Message history**: Persist conversations to database
+3. **(Optional) User authentication**: Previously implemented; currently removed — re-add if needed
 4. **Real-time updates**: Use WebSockets for live chat
 5. **Advanced styling**: Explore Framer Motion for complex animations
 6. **Performance optimization**: Implement code splitting, lazy loading

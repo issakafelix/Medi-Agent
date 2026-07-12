@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MediAgent</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
   :root{
     --ink:#17231F;
@@ -23,14 +23,13 @@
   }
 
   *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;scroll-padding-top:90px;}
+  html{scroll-behavior:smooth;}
   body{
     margin:0;
     background:var(--paper);
     color:var(--ink);
     font-family:'Inter',sans-serif;
     -webkit-font-smoothing:antialiased;
-    overflow-x:hidden;
   }
 
   ::-webkit-scrollbar{width:9px;}
@@ -49,10 +48,8 @@
     max-width:840px;margin:0 auto;
     padding:18px 24px;
     display:flex;align-items:center;justify-content:space-between;
-    gap:12px;
   }
-  .brand{display:flex;align-items:center;gap:10px;min-width:0;}
-  .brand > div{min-width:0;}
+  .brand{display:flex;align-items:center;gap:10px;}
   .brand-mark{width:26px;height:26px;flex-shrink:0;}
   .brand-name{
     font-family:'Newsreader',serif;
@@ -315,26 +312,9 @@
     padding-top:40px;
   }
 
-  @media (max-width:768px){
-    .wrap{padding:0 16px 100px 16px;}
-    .header-inner{padding:16px 16px;flex-direction:column;align-items:flex-start;}
-    .disclaimer-pill{margin-top:2px;}
-    header{position:relative;top:auto;}
-    .journey{position:relative;top:auto;padding:12px 0 16px 0;}
-    .journey-track{padding:0 16px;}
-    .card{padding:18px;}
-    .card-footer{flex-direction:column;align-items:flex-start;gap:12px;}
-  }
-
   @media (max-width:640px){
     .j-label{display:none;}
-    .j-step{gap:6px;}
-    .j-node{width:22px;height:22px;font-size:10px;}
-    .j-connector{margin:0;}
     h1.hero-title{font-size:27px;}
-    .hero-sub{font-size:13.5px;margin-bottom:22px;}
-    .example-chip{font-size:11px;padding:5px 10px;}
-    .analyze-btn,.advance-btn{width:100%;justify-content:center;}
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -342,12 +322,8 @@
     *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
   }
 </style>
-<link rel="stylesheet" href="/styles/globals.css">
 </head>
 <body>
-
-<div id="firebase-auth-root"></div>
-
 
 <header>
   <div class="header-inner">
@@ -356,7 +332,6 @@
         <path d="M2 12h4l2-7 4 14 2-9 2 5h6" stroke="#1F6F5C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <div>
-      <script type="module" src="/firebase-mount.jsx"></script>
         <div class="brand-name">MediAgent</div>
         <div class="brand-tag">Symptoms → first aid → nearest care</div>
       </div>
@@ -495,6 +470,7 @@
     headache:{
       title:"Tension-type headache",
       conditions:[
+   npm run dev
         {name:"Tension-type headache", pct:72, urgency:"low", desc:"The most common headache type, often linked to stress, screen time, or dehydration. Typically resolves with rest and hydration."},
         {name:"Migraine (early stage)", pct:41, urgency:"moderate", desc:"Light sensitivity and nausea can indicate early migraine. Worth tracking if it recurs or worsens."},
         {name:"Dehydration", pct:33, urgency:"low", desc:"Mild dehydration commonly presents as headache with nausea, especially after low fluid intake."}
@@ -582,13 +558,12 @@
     setTimeout(()=> el.scrollIntoView({behavior: reduceMotion ? 'auto':'smooth', block:'start'}), 80);
   }
 
-  analyzeBtn.addEventListener('click', ()=>{
+  analyzeBtn.addEventListener('click', async ()=>{
     if(!symptomInput.value.trim()){
       symptomInput.focus();
       symptomInput.style.borderColor = 'var(--coral)';
       return;
     }
-    if(!scenarios[currentScenario]) currentScenario = 'default';
 
     analyzeBtn.classList.add('loading');
     analyzeBtn.disabled = true;
@@ -596,10 +571,39 @@
 
     setStep(2);
 
-    setTimeout(()=>{
-      analyzeBtn.classList.remove('loading');
-      analyzeLabel.textContent = 'Analyze symptoms';
-      analyzeBtn.disabled = false;
+    // Try calling the backend /api/chat endpoint. If it fails, fall back to demo scenarios.
+    try {
+      const payload = {
+        message: symptomInput.value.trim(),
+      };
+
+      const resp = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const json = await resp.json();
+      const reply = (json && json.reply) ? String(json.reply) : 'No reply from server.';
+
+      const list = document.getElementById('conditionsList');
+      list.innerHTML = `
+        <div class="condition">
+          <div class="condition-head">
+            <div class="condition-name">AI assessment</div>
+            <div class="urgency low">Response</div>
+          </div>
+          <div class="condition-desc">${reply.replace(/\n/g, '<br/>')}</div>
+        </div>
+      `;
+
+      revealSection('step2');
+    } catch (err) {
+      // Fallback to local demo scenarios if backend call fails
+      console.warn('Backend /api/chat call failed, using demo scenarios:', err);
+      if(!scenarios[currentScenario]) currentScenario = 'default';
 
       const data = scenarios[currentScenario];
       const list = document.getElementById('conditionsList');
@@ -625,8 +629,11 @@
           if(fill) fill.style.width = c.pct + '%';
         });
       }, 150);
-
-    }, 1400);
+    } finally {
+      analyzeBtn.classList.remove('loading');
+      analyzeLabel.textContent = 'Analyze symptoms';
+      analyzeBtn.disabled = false;
+    }
   });
 
   document.getElementById('toFirstAidBtn').addEventListener('click', ()=>{

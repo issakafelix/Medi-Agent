@@ -478,8 +478,8 @@ The codebase is designed for easy additions:
 ## 🎯 Next Steps for Production
 
 1. **Add Backend**: Implement `/api/chat` endpoint
-2. **User Auth**: Add login/signup
-3. **Database**: Store conversations
+2. **Database**: Store conversations
+3. **User Auth (optional)**: Authentication was removed from the client; reintroduce if required for your deployment
 4. **Real-time Updates**: WebSocket integration
 5. **Analytics**: Track user interactions
 6. **Monitoring**: Error tracking (Sentry)
