@@ -67,7 +67,9 @@ export async function sendMessage(message, options = {}) {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let detail = '';
+      try { detail = (await response.json()).detail || ''; } catch (e) { /* no JSON body */ }
+      throw new Error(detail || `HTTP error! status: ${response.status}`);
     }
 
     return await response.json();

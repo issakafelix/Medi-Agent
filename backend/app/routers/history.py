@@ -22,7 +22,7 @@ def history(
     uid = user["uid"]
     stmt = (
         select(Message)
-        .join(Conversation)
+        .join(Conversation, Message.conversation_id == Conversation.id)
         .where(Conversation.user_id == uid)
         .order_by(Message.created_at.desc())
         .limit(limit)

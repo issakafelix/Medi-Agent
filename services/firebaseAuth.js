@@ -16,7 +16,6 @@ import {
 import { setFirebaseIdToken } from './apiService';
 
 let auth = null;
-let appInstance = null;
 
 function initFirebase() {
   if (auth) return auth;
@@ -36,7 +35,7 @@ function initFirebase() {
 
   if (!getApps().length) {
     try {
-      appInstance = initializeApp(config);
+      initializeApp(config);
     } catch (e) {
       console.warn('Failed to initialize Firebase app:', e);
       return null;

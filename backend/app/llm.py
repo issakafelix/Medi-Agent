@@ -123,8 +123,11 @@ async def openai_chat_completion(
     # Small retry loop for transient failures (esp. rate limits / overload).
     # Keeps behavior simple and avoids returning demo text when a brief retry would succeed.
     for attempt in range(3):
-        async with httpx.AsyncClient(timeout=cfg.request_timeout_s) as client:
-            resp = await client.post(url, headers=headers, content=json.dumps(payload))
+        try:
+            async with httpx.AsyncClient(timeout=cfg.request_timeout_s) as client:
+                resp = await client.post(url, headers=headers, content=json.dumps(payload))
+        except httpx.RequestError as e:
+            raise LlmError(f"Could not reach LLM provider at {cfg.openai_base_url}: {e}") from e
 
         if resp.status_code < 400:
             last_error = None
@@ -245,8 +248,11 @@ async def openai_image_generation(
     if (cfg.openai_api_key or "").strip():
         headers["Authorization"] = f"Bearer {cfg.openai_api_key}"
 
-    async with httpx.AsyncClient(timeout=cfg.request_timeout_s) as client:
-        resp = await client.post(url, headers=headers, content=json.dumps(payload))
+    try:
+        async with httpx.AsyncClient(timeout=cfg.request_timeout_s) as client:
+            resp = await client.post(url, headers=headers, content=json.dumps(payload))
+    except httpx.RequestError as e:
+        raise LlmError(f"Could not reach LLM provider at {cfg.openai_base_url}: {e}") from e
 
     if resp.status_code >= 400:
         raise LlmError(f"LLM HTTP {resp.status_code}: {resp.text[:2000]}")
