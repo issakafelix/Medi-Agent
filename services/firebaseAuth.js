@@ -9,7 +9,6 @@ import {
 } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
-  GithubAuthProvider,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
@@ -66,20 +65,6 @@ export async function signInWithGoogle() {
   const a = initFirebase();
   if (!a) throw new Error('Firebase not initialized');
   const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(a, provider);
-  const user = result.user;
-  const token = await getIdToken(user, true);
-  setFirebaseIdToken(token);
-  return { user, token };
-}
-
-export async function signInWithProvider(name = 'google') {
-  const a = initFirebase();
-  if (!a) throw new Error('Firebase not initialized');
-  let provider;
-  if (name === 'github') provider = new GithubAuthProvider();
-  else provider = new GoogleAuthProvider();
-
   const result = await signInWithPopup(a, provider);
   const user = result.user;
   const token = await getIdToken(user, true);

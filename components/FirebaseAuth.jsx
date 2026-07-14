@@ -1,5 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { signOut, isFirebaseConfigured, getAuthInstance, onAuthStateChange, signInWithProvider, signInWithEmail, signUpWithEmail } from '../services/firebaseAuth';
+import { signOut, isFirebaseConfigured, getAuthInstance, onAuthStateChange, signInWithGoogle, signInWithEmail, signUpWithEmail } from '../services/firebaseAuth';
+
+const FRIENDLY_AUTH_ERRORS = {
+  'auth/wrong-password': 'Incorrect password.',
+  'auth/invalid-credential': 'Incorrect email or password.',
+  'auth/user-not-found': 'No account found with that email.',
+  'auth/email-already-in-use': 'An account with that email already exists — try signing in instead.',
+  'auth/invalid-email': 'Enter a valid email address.',
+  'auth/weak-password': 'Password should be at least 6 characters.',
+  'auth/network-request-failed': 'Network error — check your connection and try again.',
+  'auth/too-many-requests': 'Too many attempts. Please wait a moment and try again.',
+};
+
+function friendlyAuthError(err) {
+  const code = err?.code || '';
+  return FRIENDLY_AUTH_ERRORS[code] || 'Sign-in failed. Please try again.';
+}
 
 export default function FirebaseAuth() {
   const [user, setUser] = useState(null);
@@ -7,6 +23,8 @@ export default function FirebaseAuth() {
   const [showEmail, setShowEmail] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!configured) return;
@@ -21,6 +39,45 @@ export default function FirebaseAuth() {
       if (typeof unsubscribe === 'function') unsubscribe();
     };
   }, [configured]);
+
+  async function handleGoogleSignIn() {
+    setAuthError('');
+    setBusy(true);
+    try {
+      await signInWithGoogle();
+    } catch (e) {
+      // A user closing the popup isn't an error worth surfacing.
+      if (e?.code !== 'auth/popup-closed-by-user' && e?.code !== 'auth/cancelled-popup-request') {
+        setAuthError(friendlyAuthError(e));
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleEmailSignIn() {
+    setAuthError('');
+    setBusy(true);
+    try {
+      await signInWithEmail(email, password);
+    } catch (e) {
+      setAuthError(friendlyAuthError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleEmailSignUp() {
+    setAuthError('');
+    setBusy(true);
+    try {
+      await signUpWithEmail(email, password);
+    } catch (e) {
+      setAuthError(friendlyAuthError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   if (!configured) {
     return (
@@ -44,20 +101,11 @@ export default function FirebaseAuth() {
         </div>
       ) : (
         <div className="auth-actions">
-          <button
-            onClick={() => signInWithProvider('google').catch((e) => console.warn('Sign-in failed', e))}
-            className="auth-btn primary"
-          >
-            Google
+          <button onClick={handleGoogleSignIn} className="auth-btn primary" disabled={busy}>
+            {busy ? 'Signing in…' : 'Google'}
           </button>
           <button
-            onClick={() => signInWithProvider('github').catch((e) => console.warn('Sign-in failed', e))}
-            className="auth-btn secondary"
-          >
-            GitHub
-          </button>
-          <button
-            onClick={() => setShowEmail((s) => !s)}
+            onClick={() => { setShowEmail((s) => !s); setAuthError(''); }}
             className="auth-btn ghost"
             aria-expanded={showEmail}
           >
@@ -71,6 +119,7 @@ export default function FirebaseAuth() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
+            type="email"
             className="auth-email-input"
           />
           <input
@@ -80,17 +129,12 @@ export default function FirebaseAuth() {
             placeholder="Password"
             className="auth-email-input"
           />
+          {authError && <div className="auth-error">{authError}</div>}
           <div className="auth-actions">
-            <button
-              onClick={() => signInWithEmail(email, password).catch((e) => console.warn('Sign-in failed', e))}
-              className="auth-btn primary"
-            >
+            <button onClick={handleEmailSignIn} className="auth-btn primary" disabled={busy}>
               Sign in
             </button>
-            <button
-              onClick={() => signUpWithEmail(email, password).catch((e) => console.warn('Sign-up failed', e))}
-              className="auth-btn secondary"
-            >
+            <button onClick={handleEmailSignUp} className="auth-btn secondary" disabled={busy}>
               Sign up
             </button>
           </div>
