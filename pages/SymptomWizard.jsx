@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { sendMessage } from '../services/apiService';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { sendMessage, geocodeLocation, findNearbyHospitals } from '../services/apiService';
 import { formatReply } from '../utils/formatReply';
+import FirebaseAuth from '../components/FirebaseAuth';
 import '../styles/symptomWizard.css';
 
 const EXAMPLES = [
@@ -36,6 +39,14 @@ export default function SymptomWizard() {
   const [loadingStage, setLoadingStage] = useState(null); // 'analyze' | 'aid' | 'care' | null
   const [error, setError] = useState('');
 
+  // Hospital locator (OpenStreetMap — no API key). Independent of `error`/
+  // `loadingStage` above since it can fail (or take longer) separately from
+  // the AI guidance call that gates step advancement.
+  const [hospitals, setHospitals] = useState([]);
+  const [hospitalStatus, setHospitalStatus] = useState('idle'); // idle | locating | searching | done | error
+  const [hospitalMessage, setHospitalMessage] = useState('');
+  const [userCoords, setUserCoords] = useState(null);
+
   const rootRef = useRef(null);
   const stickyTopRef = useRef(null);
   const symptomInputRef = useRef(null);
@@ -45,6 +56,9 @@ export default function SymptomWizard() {
   const step4Ref = useRef(null);
   const sectionRefs = { 2: step2Ref, 3: step3Ref, 4: step4Ref };
   const isFirstRender = useRef(true);
+  const mapContainerRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markersLayerRef = useRef(null);
 
   // Keep scroll-padding-top matched to the sticky header+journey block's
   // actual height, instead of guessing a fixed offset — avoids content
@@ -94,6 +108,64 @@ export default function SymptomWizard() {
     if (error) errorBannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [error]);
 
+  // Render/update the Leaflet map once we have a resolved location + results.
+  // Marker popups are built as DOM nodes (not HTML strings) so hospital
+  // names/addresses from OpenStreetMap — public, editable data — can never
+  // be interpreted as markup.
+  useEffect(() => {
+    if (hospitalStatus !== 'done' || !userCoords || !mapContainerRef.current) return;
+
+    if (!mapInstanceRef.current) {
+      const map = L.map(mapContainerRef.current, { zoomControl: true, attributionControl: true });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
+      }).addTo(map);
+      markersLayerRef.current = L.layerGroup().addTo(map);
+      mapInstanceRef.current = map;
+    }
+
+    const map = mapInstanceRef.current;
+    const layer = markersLayerRef.current;
+    layer.clearLayers();
+
+    const userIcon = L.divIcon({ className: 'symptom-wizard-user-pin', html: '<span></span>', iconSize: [16, 16], iconAnchor: [8, 8] });
+    L.marker([userCoords.lat, userCoords.lon], { icon: userIcon }).addTo(layer).bindPopup('Your location');
+
+    const hospIcon = L.divIcon({ className: 'symptom-wizard-hosp-pin', html: '<span></span>', iconSize: [14, 14], iconAnchor: [7, 7] });
+    const bounds = L.latLngBounds([[userCoords.lat, userCoords.lon]]);
+
+    hospitals.forEach((h) => {
+      const popupEl = document.createElement('div');
+      const nameEl = document.createElement('strong');
+      nameEl.textContent = h.name;
+      const distEl = document.createElement('div');
+      distEl.textContent = `${h.distance_km} km away`;
+      popupEl.appendChild(nameEl);
+      popupEl.appendChild(distEl);
+
+      L.marker([h.lat, h.lon], { icon: hospIcon }).addTo(layer).bindPopup(popupEl);
+      bounds.extend([h.lat, h.lon]);
+    });
+
+    map.invalidateSize();
+    if (hospitals.length > 0) {
+      map.fitBounds(bounds, { padding: [28, 28], maxZoom: 15 });
+    } else {
+      map.setView([userCoords.lat, userCoords.lon], 13);
+    }
+  }, [hospitals, userCoords, hospitalStatus]);
+
+  // Tear the map down on unmount so Leaflet's DOM/listeners don't leak.
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
   async function callChat(message) {
     const res = await sendMessage(message, {
       conversationId: conversationId ?? undefined,
@@ -140,6 +212,59 @@ export default function SymptomWizard() {
     }
   }
 
+  function getBrowserLocation() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser.'));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        (err) => reject(err),
+        { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 }
+      );
+    });
+  }
+
+  async function loadNearbyHospitals(typedLocation) {
+    setHospitalStatus('locating');
+    setHospitalMessage('');
+    setHospitals([]);
+    setUserCoords(null);
+
+    let coords;
+    try {
+      coords = await getBrowserLocation();
+    } catch (geoErr) {
+      if (!typedLocation) {
+        setHospitalStatus('error');
+        setHospitalMessage('Location access was denied. Add a city/area above and click "Find nearest care" again to see nearby hospitals.');
+        return;
+      }
+      try {
+        const geo = await geocodeLocation(typedLocation);
+        coords = { lat: geo.lat, lon: geo.lon };
+      } catch (geocodeErr) {
+        setHospitalStatus('error');
+        setHospitalMessage(geocodeErr?.message || `Couldn't find "${typedLocation}". Try a more specific city or area.`);
+        return;
+      }
+    }
+
+    setUserCoords(coords);
+    setHospitalStatus('searching');
+    try {
+      const res = await findNearbyHospitals(coords.lat, coords.lon);
+      const found = res.hospitals || [];
+      setHospitals(found);
+      setHospitalStatus('done');
+      setHospitalMessage(found.length ? '' : 'No hospitals or clinics found within 5km of this location.');
+    } catch (err) {
+      setHospitalStatus('error');
+      setHospitalMessage(err?.message || 'Could not look up nearby hospitals.');
+    }
+  }
+
   async function handleFindCare() {
     setError('');
     setLoadingStage('care');
@@ -147,15 +272,19 @@ export default function SymptomWizard() {
     const message = loc
       ? `My location is ${loc}. Based on what I described, what hospitals, clinics, or type of specialist should I look for nearby, and what should I ask for when I arrive?`
       : "Based on what I described, what type of hospital, clinic, or specialist should I look for, and what should I ask for when I arrive? I haven't shared my exact location.";
-    try {
-      const reply = await callChat(message);
-      setCare(reply);
+
+    const [aiResult] = await Promise.allSettled([
+      callChat(message),
+      loadNearbyHospitals(loc),
+    ]);
+
+    if (aiResult.status === 'fulfilled') {
+      setCare(aiResult.value);
       setStep((s) => Math.max(s, 4));
-    } catch (err) {
-      setError(err?.message || 'Could not reach MediAgent. Please try again.');
-    } finally {
-      setLoadingStage(null);
+    } else {
+      setError(aiResult.reason?.message || 'Could not reach MediAgent. Please try again.');
     }
+    setLoadingStage(null);
   }
 
   function handleSymptomKeyDown(e) {
@@ -199,9 +328,12 @@ export default function SymptomWizard() {
                 <div className="brand-tag">Symptoms → first aid → nearest care</div>
               </div>
             </div>
-            <div className="disclaimer-pill">
-              <WarningIcon />
-              Informational only, not a diagnosis
+            <div className="header-actions">
+              <div className="disclaimer-pill">
+                <WarningIcon />
+                Informational only, not a diagnosis
+              </div>
+              <FirebaseAuth />
             </div>
           </div>
         </header>
@@ -319,21 +451,76 @@ export default function SymptomWizard() {
           <section ref={step4Ref} tabIndex={-1} className="reveal-block">
             <div className="eyebrow">Step 4 · Nearest appropriate care</div>
             <div className="card">
-              <div className="section-title">Where to go next</div>
-              <div className="section-desc">AI-generated guidance based on your symptoms and location — not a live directory.</div>
-              <div className="map-visual">
-                <svg viewBox="0 0 700 150" preserveAspectRatio="none">
-                  <defs>
-                    <pattern id="symptom-wizard-grid" width="35" height="35" patternUnits="userSpaceOnUse">
-                      <path d="M 35 0 L 0 0 0 35" fill="none" stroke="#C7DAD2" strokeWidth="1" />
-                    </pattern>
-                  </defs>
-                  <rect width="700" height="150" fill="url(#symptom-wizard-grid)" />
-                  <circle cx="350" cy="75" r="7" fill="#17231F" />
-                  <circle cx="350" cy="75" r="14" fill="none" stroke="#17231F" strokeWidth="1.5" opacity="0.4" />
-                </svg>
-              </div>
+              <div className="section-title">What to look for</div>
+              <div className="section-desc">AI-generated guidance based on your symptoms and location.</div>
               <div className="reply-text">{formatReply(care)}</div>
+            </div>
+
+            <div className="card">
+              <div className="section-title">Hospitals &amp; clinics near you</div>
+              <div className="section-desc">Real facilities from OpenStreetMap, sorted by distance.</div>
+
+              {(hospitalStatus === 'locating' || hospitalStatus === 'searching') && (
+                <div className="hospital-status">
+                  <span className="hospital-status-spinner" aria-hidden="true" />
+                  {hospitalStatus === 'locating' ? 'Finding your location…' : 'Looking for nearby hospitals & clinics…'}
+                </div>
+              )}
+
+              {hospitalStatus === 'error' && (
+                <div className="hospital-status hospital-status-error">
+                  <WarningIcon />
+                  <span>{hospitalMessage}</span>
+                  <button type="button" className="hospital-retry" onClick={() => loadNearbyHospitals(location.trim())}>
+                    Try again
+                  </button>
+                </div>
+              )}
+
+              {hospitalStatus === 'done' && userCoords && (
+                <div
+                  className="hospital-map"
+                  ref={mapContainerRef}
+                  role="img"
+                  aria-label="Map showing your location and nearby hospitals"
+                />
+              )}
+
+              {hospitalStatus === 'done' && hospitals.length === 0 && (
+                <div className="hospital-status">{hospitalMessage}</div>
+              )}
+
+              {hospitals.length > 0 && (
+                <div className="hospital-list">
+                  {hospitals.map((h) => (
+                    <div className="hospital" key={h.id}>
+                      <div className="hospital-pin">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z" /><circle cx="12" cy="9" r="2.5" /></svg>
+                      </div>
+                      <div className="hospital-body">
+                        <div className="hospital-top">
+                          <div className="hospital-name">{h.name}</div>
+                          <div className="hospital-dist">{h.distance_km} km</div>
+                        </div>
+                        <div className="hospital-meta">
+                          {h.kind === 'clinic' ? 'Clinic' : 'Hospital'}{h.address ? ` · ${h.address}` : ''}
+                        </div>
+                        <div className="hospital-actions">
+                          <a
+                            className="hosp-btn primary"
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lon}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Get directions
+                          </a>
+                          {h.phone && <a className="hosp-btn" href={`tel:${h.phone}`}>{h.phone}</a>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         )}

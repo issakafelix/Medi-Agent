@@ -261,3 +261,38 @@ export async function generateImage(prompt, options = {}) {
 
   return await response.json();
 }
+
+async function _jsonOrThrow(response) {
+  if (!response.ok) {
+    let detail = '';
+    try { detail = (await response.json()).detail || ''; } catch (e) { /* no JSON body */ }
+    throw new Error(detail || `HTTP error! status: ${response.status}`);
+  }
+  return await response.json();
+}
+
+/**
+ * Turn a free-text location (city/area) into coordinates.
+ * Expected response: { lat, lon, display_name }
+ */
+export async function geocodeLocation(query) {
+  const text = String(query ?? '').trim();
+  if (!text) throw new Error('No location provided');
+
+  const response = await fetch(`${API_BASE_URL}/hospitals/geocode?q=${encodeURIComponent(text)}`, {
+    headers: await getAuthHeaders(false),
+  });
+  return _jsonOrThrow(response);
+}
+
+/**
+ * Find real nearby hospitals/clinics for a coordinate pair (OpenStreetMap data).
+ * Expected response: { hospitals: [{ id, name, kind, lat, lon, distance_km, address, phone }] }
+ */
+export async function findNearbyHospitals(lat, lon, radiusM = 5000) {
+  const params = new URLSearchParams({ lat, lon, radius_m: radiusM });
+  const response = await fetch(`${API_BASE_URL}/hospitals/nearby?${params.toString()}`, {
+    headers: await getAuthHeaders(false),
+  });
+  return _jsonOrThrow(response);
+}

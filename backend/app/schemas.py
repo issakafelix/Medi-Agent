@@ -82,3 +82,24 @@ class ImageGenerateRequest(BaseModel):
 class ImageGenerateResponse(BaseModel):
     # A data URL like: data:image/png;base64,....
     image_data_url: str
+
+
+class GeocodeResponse(BaseModel):
+    lat: float
+    lon: float
+    display_name: str
+
+
+class HospitalItem(BaseModel):
+    id: str
+    name: str
+    kind: str
+    lat: float
+    lon: float
+    distance_km: float
+    address: Optional[str] = None
+    phone: Optional[str] = None
+
+
+class HospitalsNearbyResponse(BaseModel):
+    hospitals: list[HospitalItem]

@@ -14,7 +14,7 @@ from .config import get_settings
 from .db import init_db
 from .llm import LlmConfig, is_llm_enabled
 from .security import RequestSizeLimitMiddleware, SimpleRateLimitMiddleware
-from .routers import chat, conversations, history, image, ratings
+from .routers import chat, conversations, history, hospitals, image, ratings
 
 
 def create_app() -> FastAPI:
@@ -50,6 +50,7 @@ def create_app() -> FastAPI:
     app.include_router(conversations.router)
     app.include_router(ratings.router)
     app.include_router(image.router)
+    app.include_router(hospitals.router)
 
     @app.on_event("startup")
     def _startup() -> None:
