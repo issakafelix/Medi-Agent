@@ -102,13 +102,13 @@ def create_app() -> FastAPI:
 
     @app.get("/health")
     def health():
-        return {"ok": True}
+        return {"status": "ok"}
 
     # Serve the built frontend in production-like environments.
-    # Build output is expected at <repo-root>/dist.
+    # Build output is expected at <repo-root>/frontend/dist.
     if not is_dev:
         repo_root = Path(__file__).resolve().parents[2]
-        dist_dir = repo_root / "dist"
+        dist_dir = repo_root / "frontend" / "dist"
         index_html = dist_dir / "index.html"
 
         if dist_dir.exists() and index_html.exists():

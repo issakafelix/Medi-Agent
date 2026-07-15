@@ -7,8 +7,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies & build output
 node_modules
-.DS_Store
 dist
 dist-ssr
 coverage
@@ -17,21 +17,21 @@ coverage
 .vscode/*
 !.vscode/extensions.json
 .idea
+.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Environment variables (secrets)
+# Environment variables & secrets (never commit these)
 .env
 .env.local
 .env.*.local
 .env.production
-
-# Backend environment variables & secrets
 backend/.env
 backend/.env.*
+service-account.json
 backend/service-account.json
 
 # Python
@@ -39,16 +39,15 @@ __pycache__/
 *.pyc
 *.pyo
 *.egg-info/
-backend/chatbot_backend.egg-info/
 .venv/
-backend/.venv/
 .pytest_cache/
 
 # Databases
 *.db
 app.db
-backend/app.db
 
 # Deployment
 .vercel
-render.yaml
+
+# Claude Code local settings
+.claude/settings.local.json

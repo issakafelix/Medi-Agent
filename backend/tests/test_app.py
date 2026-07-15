@@ -2,7 +2,7 @@ import unittest
 
 from fastapi.testclient import TestClient
 
-from backend.app.main import create_app
+from app.main import create_app
 
 
 class AppStartupTests(unittest.TestCase):
@@ -13,7 +13,7 @@ class AppStartupTests(unittest.TestCase):
         response = client.get("/health")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {"ok": True})
+        self.assertEqual(response.json(), {"status": "ok"})
 
 
 if __name__ == "__main__":

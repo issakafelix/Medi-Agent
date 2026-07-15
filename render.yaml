@@ -1,0 +1,40 @@
+# Render Blueprint — free-tier backend web service.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Secrets (sync: false) must be set in the Render dashboard:
+#   OPENAI_API_KEY                  — your Groq API key (gsk_...)
+#   FIREBASE_SERVICE_ACCOUNT_JSON   — full service-account JSON string
+#   CORS_ORIGINS                    — your Vercel URL(s), comma-separated,
+#                                     e.g. https://medi-agent.vercel.app
+services:
+  - type: web
+    name: medi-agent-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.4
+      - key: APP_ENV
+        value: prod
+      - key: TRUSTED_HOSTS
+        value: "*"
+      - key: LLM_PROVIDER
+        value: openai-compatible
+      - key: OPENAI_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: OPENAI_CHAT_MODEL
+        value: llama-3.3-70b-versatile
+      - key: OPENAI_VISION_MODEL
+        value: llama-3.3-70b-versatile
+      - key: LLM_REQUEST_TIMEOUT_S
+        value: "120.0"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
