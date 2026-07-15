@@ -3,13 +3,23 @@ from __future__ import annotations
 from datetime import datetime
 import logging
 
-from fastapi import APIRouter, Depends
+import json
+
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlmodel import select
 from sqlmodel import Session
 
 from ..config import get_settings
 from ..db import get_session
-from ..llm import LlmConfig, LlmError, generate_chat_reply, generate_image_b64, is_llm_enabled
+from ..llm import (
+    LlmConfig,
+    LlmError,
+    generate_chat_reply,
+    generate_image_b64,
+    is_llm_enabled,
+    stream_chat_completion,
+)
 from ..models import Conversation, Message
 from ..schemas import ChatRequest, ChatResponse
 
@@ -134,18 +144,9 @@ def _demo_llm_reply(
 
 from ..auth import get_current_user
 
-@router.post("/api/chat", response_model=ChatResponse)
-async def chat(
-    payload: ChatRequest, 
-    session: Session = Depends(get_session),
-    user: dict = Depends(get_current_user),
-) -> ChatResponse:
-    settings = get_settings()
-    uid = user["uid"]
 
-    raw_text = (payload.message or "").strip()
-    is_image_cmd = raw_text.lower().startswith("/image ") or raw_text.lower().startswith("/img ")
-
+def _prepare_conversation(session: Session, payload: ChatRequest, uid: str) -> tuple[Conversation, Message]:
+    """Create/load the conversation and persist the incoming user message."""
     convo_id = payload.conversation_id
     if convo_id is None:
         title = (payload.message or "New chat").strip()[:40] or "New chat"
@@ -169,14 +170,10 @@ async def chat(
     session.add(user_msg)
     session.commit()
     session.refresh(user_msg)
+    return convo, user_msg
 
-    system_prompt = _build_system_prompt(
-        preset=payload.preset,
-        tone=payload.tone,
-        verbosity=payload.verbosity,
-        memory=payload.memory,
-    )
 
+def _build_cfg(settings) -> LlmConfig:
     cfg_provider = _normalize_llm_provider(settings.llm_provider)
     cfg_api_key = settings.openai_api_key
     cfg_base_url = settings.openai_base_url
@@ -189,7 +186,7 @@ async def chat(
         cfg_chat_model = settings.gemini_model
         cfg_vision_model = settings.gemini_model
 
-    cfg = LlmConfig(
+    return LlmConfig(
         provider=cfg_provider,
         openai_api_key=cfg_api_key or None,
         openai_base_url=cfg_base_url,
@@ -198,6 +195,62 @@ async def chat(
         openai_image_model=settings.openai_image_model,
         request_timeout_s=settings.llm_request_timeout_s,
     )
+
+
+def _build_history_messages(
+    session: Session, convo: Conversation, payload: ChatRequest, system_prompt: str
+) -> list[dict[str, str]]:
+    # Provide short-term conversational memory by sending the last N messages.
+    history_limit = 10
+    rows = session.exec(
+        select(Message)
+        .where(Message.conversation_id == convo.id)
+        .order_by(Message.created_at.desc())
+        .limit(history_limit)
+    ).all()
+
+    rows = list(reversed(rows))
+    openai_messages: list[dict[str, str]] = []
+    if system_prompt.strip():
+        openai_messages.append({"role": "system", "content": system_prompt})
+
+    for m in rows:
+        role_raw = str(m.role or "user").strip().lower()
+        role = "assistant" if role_raw in {"bot", "assistant"} else "user"
+        content = str(m.content or "")
+        if not content.strip():
+            continue
+        openai_messages.append({"role": role, "content": content})
+
+    # Fallback guard: if something went wrong building history, at least send the latest user message.
+    if not any(msg.get("role") == "user" for msg in openai_messages):
+        openai_messages.append({"role": "user", "content": payload.message})
+
+    return openai_messages
+
+
+@router.post("/api/chat", response_model=ChatResponse)
+async def chat(
+    payload: ChatRequest,
+    session: Session = Depends(get_session),
+    user: dict = Depends(get_current_user),
+) -> ChatResponse:
+    settings = get_settings()
+    uid = user["uid"]
+
+    raw_text = (payload.message or "").strip()
+    is_image_cmd = raw_text.lower().startswith("/image ") or raw_text.lower().startswith("/img ")
+
+    convo, user_msg = _prepare_conversation(session, payload, uid)
+
+    system_prompt = _build_system_prompt(
+        preset=payload.preset,
+        tone=payload.tone,
+        verbosity=payload.verbosity,
+        memory=payload.memory,
+    )
+
+    cfg = _build_cfg(settings)
 
     reply: str
     try:
@@ -215,31 +268,7 @@ async def chat(
                     reply = f"![Generated image](data:image/png;base64,{b64})"
 
         else:
-            # Provide short-term conversational memory by sending the last N messages.
-            history_limit = 10
-            rows = session.exec(
-                select(Message)
-                .where(Message.conversation_id == convo.id)
-                .order_by(Message.created_at.desc())
-                .limit(history_limit)
-            ).all()
-
-            rows = list(reversed(rows))
-            openai_messages: list[dict[str, str]] = []
-            if system_prompt.strip():
-                openai_messages.append({"role": "system", "content": system_prompt})
-
-            for m in rows:
-                role_raw = str(m.role or "user").strip().lower()
-                role = "assistant" if role_raw in {"bot", "assistant"} else "user"
-                content = str(m.content or "")
-                if not content.strip():
-                    continue
-                openai_messages.append({"role": role, "content": content})
-
-            # Fallback guard: if something went wrong building history, at least send the latest user message.
-            if not any(msg.get("role") == "user" for msg in openai_messages):
-                openai_messages.append({"role": "user", "content": payload.message})
+            openai_messages = _build_history_messages(session, convo, payload, system_prompt)
 
             llm_reply = await generate_chat_reply(cfg=cfg, messages=openai_messages)
 
@@ -294,4 +323,84 @@ async def chat(
         conversation_id=convo.id,
         user_message_id=user_msg.id or 0,
         bot_message_id=bot_msg.id or 0,
+    )
+
+
+def _sse(data: dict, event: str | None = None) -> str:
+    prefix = f"event: {event}\n" if event else ""
+    return f"{prefix}data: {json.dumps(data)}\n\n"
+
+
+@router.post("/api/chat/stream")
+async def chat_stream(
+    payload: ChatRequest,
+    session: Session = Depends(get_session),
+    user: dict = Depends(get_current_user),
+) -> StreamingResponse:
+    """Same as /api/chat but streams the reply as Server-Sent Events.
+
+    Events: `meta` (conversation/user message ids), unnamed `data` chunks with
+    {"delta": ...}, `error` ({"message": ...}), then `done` ({"bot_message_id"}).
+    The full reply is persisted like the non-streaming endpoint.
+    """
+    settings = get_settings()
+    uid = user["uid"]
+
+    convo, user_msg = _prepare_conversation(session, payload, uid)
+
+    system_prompt = _build_system_prompt(
+        preset=payload.preset,
+        tone=payload.tone,
+        verbosity=payload.verbosity,
+        memory=payload.memory,
+    )
+    cfg = _build_cfg(settings)
+    openai_messages = _build_history_messages(session, convo, payload, system_prompt)
+
+    async def event_gen():
+        yield _sse(
+            {"conversation_id": convo.id, "user_message_id": user_msg.id or 0},
+            event="meta",
+        )
+
+        parts: list[str] = []
+        try:
+            if not is_llm_enabled(cfg):
+                demo = _demo_llm_reply(
+                    payload.message,
+                    tone=payload.tone,
+                    verbosity=payload.verbosity,
+                    memory=payload.memory,
+                    preset=payload.preset,
+                )
+                parts.append(demo)
+                yield _sse({"delta": demo})
+            else:
+                async for delta in stream_chat_completion(
+                    cfg=cfg, messages=openai_messages, model=cfg.openai_chat_model
+                ):
+                    parts.append(delta)
+                    yield _sse({"delta": delta})
+        except LlmError as e:
+            logging.getLogger("uvicorn.error").exception("LLM stream failed")
+            if not parts:
+                # Nothing was streamed: report the failure so the client can fall back.
+                yield _sse({"message": str(e)[:300]}, event="error")
+                return
+            # Partial reply already sent — persist what we have.
+
+        reply = "".join(parts).strip() or "⚠️ The AI returned no content. Please try again."
+        bot_msg = Message(conversation_id=convo.id, role="bot", content=reply)
+        session.add(bot_msg)
+        convo.updated_at = datetime.utcnow()
+        session.add(convo)
+        session.commit()
+        session.refresh(bot_msg)
+
+        yield _sse({"bot_message_id": bot_msg.id or 0}, event="done")
+
+    return StreamingResponse(
+        event_gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )

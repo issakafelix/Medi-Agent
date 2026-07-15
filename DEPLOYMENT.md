@@ -61,10 +61,13 @@ curl "https://medi-agent-issaka-felixs-projects.vercel.app/api/hospitals/geocode
 
 ## Free-tier caveats
 
-- **Chat history does not persist.** SQLite lives in `/tmp`, which is wiped
-  between serverless invocations. Free fix when you want it: a free Postgres
-  from [Neon](https://neon.tech) → set `DATABASE_URL`, add `psycopg2-binary`
-  to `backend/requirements.txt`.
+- **Chat history does not persist** until you attach a real database. The
+  code is already Postgres-ready (`psycopg2-binary` is installed and
+  `postgres://` URLs are handled). To enable persistent history, free:
+  1. Create a free account at https://neon.tech (no card needed)
+  2. Create a project → copy the **connection string** (`postgres://...`)
+  3. Vercel dashboard → medi-agent → Settings → Environment Variables →
+     edit `DATABASE_URL` → paste the Neon string → redeploy.
 - **Vision & image generation don't work** — `llama-3.3-70b-versatile` is
   text-only and Groq has no image-generation endpoint. Chat, symptom wizard,
   and hospital search all work.

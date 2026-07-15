@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { sendMessage, geocodeLocation, findNearbyHospitals } from '../services/apiService';
+import { sendMessage, streamMessage, rateMessage, geocodeLocation, findNearbyHospitals } from '../services/apiService';
 import { formatReply } from '../utils/formatReply';
 import FirebaseAuth from '../components/FirebaseAuth';
 import '../styles/symptomWizard.css';
@@ -18,6 +18,32 @@ const STEPS = [
   { n: 3, label: 'First aid' },
   { n: 4, label: 'Care nearby' },
 ];
+
+// Emergency "red flag" patterns checked instantly, before any AI call.
+// Deliberately broad: a false alarm costs a dismissed banner; a miss costs far more.
+const RED_FLAGS = [
+  { re: /chest (pain|pressure|tightness)|pain in (my |the )?chest/i, label: 'chest pain' },
+  { re: /(can'?t|cannot|can not|hard to|difficulty|trouble|struggling to) breath|short(ness)? of breath|gasping/i, label: 'breathing difficulty' },
+  { re: /stroke|face droop|slurred speech|(one side|left side|right side).{0,20}(weak|numb)|sudden (numbness|confusion)/i, label: 'possible stroke signs' },
+  { re: /(heavy|severe|uncontrolled) bleed|bleeding (a lot|heavily)|(won'?t|will not) stop bleed/i, label: 'severe bleeding' },
+  { re: /unconscious|unresponsive|passed out|fainted|not waking/i, label: 'loss of consciousness' },
+  { re: /seizure|convulsion/i, label: 'seizure' },
+  { re: /suicid|kill myself|end my life|self[- ]?harm/i, label: 'mental health crisis' },
+  { re: /anaphyla|throat (is )?(swelling|closing)|severe allergic/i, label: 'severe allergic reaction' },
+  { re: /(lips|face) (are |is )?(turning )?blue|turning blue/i, label: 'bluish lips/face' },
+  { re: /poison|overdose|swallowed (chemical|bleach|detergent)/i, label: 'poisoning/overdose' },
+  { re: /(coughing|vomiting|throwing) up blood|blood in (my )?(vomit|stool|urine)|coughing blood/i, label: 'internal bleeding signs' },
+  { re: /worst headache of my life|thunderclap headache/i, label: 'sudden severe headache' },
+  { re: /snake ?bite|scorpion sting/i, label: 'venomous bite/sting' },
+];
+
+function checkRedFlags(text) {
+  const found = [];
+  for (const { re, label } of RED_FLAGS) {
+    if (re.test(text) && !found.includes(label)) found.push(label);
+  }
+  return found;
+}
 
 const ArrowIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" {...props}><path d="M5 12h14M13 5l7 7-7 7" /></svg>
@@ -38,6 +64,9 @@ export default function SymptomWizard() {
   const [care, setCare] = useState('');
   const [loadingStage, setLoadingStage] = useState(null); // 'analyze' | 'aid' | 'care' | null
   const [error, setError] = useState('');
+  const [redFlags, setRedFlags] = useState([]);
+  const [assessmentMsgId, setAssessmentMsgId] = useState(null);
+  const [assessmentRating, setAssessmentRating] = useState(0);
 
   // Hospital locator (OpenStreetMap — no API key). Independent of `error`/
   // `loadingStage` above since it can fail (or take longer) separately from
@@ -175,6 +204,32 @@ export default function SymptomWizard() {
     return res.reply;
   }
 
+  // Streaming variant: onText receives the growing reply so the UI can render
+  // it word-by-word. Falls back to the non-streaming endpoint on failure.
+  async function callChatStream(message, onText) {
+    try {
+      const res = await streamMessage(
+        message,
+        { conversationId: conversationId ?? undefined, preset: 'default' },
+        {
+          onDelta: (full) => onText?.(full),
+          onMeta: (m) => { if (m?.conversation_id) setConversationId(m.conversation_id); },
+        }
+      );
+      if (res.conversation_id) setConversationId(res.conversation_id);
+      return res;
+    } catch (streamErr) {
+      console.warn('Stream failed, falling back to regular request:', streamErr?.message);
+      const res = await sendMessage(message, {
+        conversationId: conversationId ?? undefined,
+        preset: 'default',
+      });
+      setConversationId(res.conversation_id);
+      onText?.(res.reply);
+      return { reply: res.reply, conversation_id: res.conversation_id, bot_message_id: res.bot_message_id };
+    }
+  }
+
   async function handleAnalyze() {
     const text = symptomText.trim();
     if (!text) {
@@ -184,10 +239,19 @@ export default function SymptomWizard() {
     }
     setSymptomInvalid(false);
     setError('');
+    // Safety first: scan for emergency keywords immediately, before the AI runs.
+    setRedFlags(checkRedFlags(text));
     setLoadingStage('analyze');
+    setAssessment('');
+    setAssessmentMsgId(null);
+    setAssessmentRating(0);
     try {
-      const reply = await callChat(text);
-      setAssessment(reply);
+      const res = await callChatStream(text, (partial) => {
+        setAssessment(partial);
+        setStep((s) => Math.max(s, 2));
+      });
+      setAssessment(res.reply);
+      setAssessmentMsgId(res.bot_message_id ?? null);
       setStep((s) => Math.max(s, 2));
     } catch (err) {
       setError(err?.message || 'Could not reach MediAgent. Please try again.');
@@ -196,14 +260,30 @@ export default function SymptomWizard() {
     }
   }
 
+  async function handleRateAssessment(value) {
+    if (!assessmentMsgId) return;
+    const next = assessmentRating === value ? 0 : value;
+    setAssessmentRating(next);
+    try {
+      await rateMessage(assessmentMsgId, next);
+    } catch (e) {
+      // Rating is non-critical; ignore failures silently.
+    }
+  }
+
   async function handleFirstAid() {
     setError('');
     setLoadingStage('aid');
+    setAid('');
     try {
-      const reply = await callChat(
-        "Based on what I just described, give me clear, step-by-step first aid or home-care guidance I can follow right now. Keep it as a short numbered list."
+      const res = await callChatStream(
+        "Based on what I just described, give me clear, step-by-step first aid or home-care guidance I can follow right now. Keep it as a short numbered list.",
+        (partial) => {
+          setAid(partial);
+          setStep((s) => Math.max(s, 3));
+        }
       );
-      setAid(reply);
+      setAid(res.reply);
       setStep((s) => Math.max(s, 3));
     } catch (err) {
       setError(err?.message || 'Could not reach MediAgent. Please try again.');
@@ -273,13 +353,17 @@ export default function SymptomWizard() {
       ? `My location is ${loc}. Based on what I described, what hospitals, clinics, or type of specialist should I look for nearby, and what should I ask for when I arrive?`
       : "Based on what I described, what type of hospital, clinic, or specialist should I look for, and what should I ask for when I arrive? I haven't shared my exact location.";
 
+    setCare('');
     const [aiResult] = await Promise.allSettled([
-      callChat(message),
+      callChatStream(message, (partial) => {
+        setCare(partial);
+        setStep((s) => Math.max(s, 4));
+      }),
       loadNearbyHospitals(loc),
     ]);
 
     if (aiResult.status === 'fulfilled') {
-      setCare(aiResult.value);
+      setCare(aiResult.value.reply);
       setStep((s) => Math.max(s, 4));
     } else {
       setError(aiResult.reason?.message || 'Could not reach MediAgent. Please try again.');
@@ -354,6 +438,23 @@ export default function SymptomWizard() {
       </div>
 
       <div className="wrap">
+        {redFlags.length > 0 && (
+          <div className="emergency-banner" role="alert">
+            <div className="emergency-title">
+              <WarningIcon />
+              <span>Possible emergency: {redFlags.join(', ')}</span>
+            </div>
+            <p>
+              If this is happening right now, don&rsquo;t wait for the AI — call emergency
+              services or get to the nearest emergency room immediately.
+            </p>
+            <a className="emergency-call" href="tel:112">Call 112 now</a>
+            <span className="emergency-note">
+              112 is the emergency number in Ghana and many countries — use your local number if different.
+            </span>
+          </div>
+        )}
+
         {error && (
           <div className="error-banner" ref={errorBannerRef} role="alert">
             <WarningIcon />
@@ -422,6 +523,25 @@ export default function SymptomWizard() {
               <div className="section-title">MediAgent&rsquo;s assessment</div>
               <div className="section-desc">Based on what you described. Not a diagnosis — a starting point.</div>
               <div className="reply-text">{formatReply(assessment)}</div>
+              {assessmentMsgId != null && loadingStage !== 'analyze' && (
+                <div className="rate-row">
+                  <span>Was this helpful?</span>
+                  <button
+                    type="button"
+                    className={`rate-btn${assessmentRating === 1 ? ' active' : ''}`}
+                    onClick={() => handleRateAssessment(1)}
+                    aria-label="Helpful"
+                    aria-pressed={assessmentRating === 1}
+                  >👍</button>
+                  <button
+                    type="button"
+                    className={`rate-btn${assessmentRating === -1 ? ' active' : ''}`}
+                    onClick={() => handleRateAssessment(-1)}
+                    aria-label="Not helpful"
+                    aria-pressed={assessmentRating === -1}
+                  >👎</button>
+                </div>
+              )}
               <button className="advance-btn" onClick={handleFirstAid} disabled={loadingStage === 'aid'}>
                 <span>{loadingStage === 'aid' ? 'Loading…' : 'View first aid guidance'}</span>
                 <ArrowIcon />
@@ -522,7 +642,62 @@ export default function SymptomWizard() {
                 </div>
               )}
             </div>
+
+            <div className="card">
+              <div className="section-title">Take this to your visit</div>
+              <div className="section-desc">Print or save a one-page summary of this session to show a doctor or pharmacist.</div>
+              <button type="button" className="advance-btn" onClick={() => window.print()}>
+                <span>Print / save summary</span>
+              </button>
+            </div>
           </section>
+        )}
+
+        {/* Print-only summary (hidden on screen, shown via @media print) */}
+        {assessment && (
+          <div className="doctor-summary">
+            <h1>MediAgent — Symptom session summary</h1>
+            <p className="ds-meta">
+              Generated {new Date().toLocaleString()} · AI-assisted triage · NOT a medical diagnosis
+            </p>
+            <h2>Symptoms as described by the patient</h2>
+            <p>{symptomText}</p>
+            {location.trim() && (
+              <>
+                <h2>Reported location</h2>
+                <p>{location}</p>
+              </>
+            )}
+            <h2>AI assessment</h2>
+            <div>{formatReply(assessment)}</div>
+            {aid && (
+              <>
+                <h2>First aid guidance given</h2>
+                <div>{formatReply(aid)}</div>
+              </>
+            )}
+            {care && (
+              <>
+                <h2>Care guidance</h2>
+                <div>{formatReply(care)}</div>
+              </>
+            )}
+            {hospitals.length > 0 && (
+              <>
+                <h2>Nearby facilities found</h2>
+                <ul>
+                  {hospitals.slice(0, 5).map((h) => (
+                    <li key={h.id}>
+                      {h.name} — {h.distance_km} km{h.phone ? ` — ${h.phone}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            <p className="ds-foot">
+              Generated by MediAgent (research prototype). All information should be verified by a qualified clinician.
+            </p>
+          </div>
         )}
 
         <footer>MediAgent is a research prototype and does not replace professional medical care. In an emergency, contact local emergency services immediately.</footer>

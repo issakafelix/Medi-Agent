@@ -161,6 +161,53 @@ async def openai_chat_completion(
     return _ensure_text(content).strip()
 
 
+async def stream_chat_completion(
+    *,
+    cfg: LlmConfig,
+    messages: list[dict[str, Any]],
+    model: str,
+    temperature: float | None = 0.2,
+):
+    """Yield content deltas from an OpenAI-compatible streaming completion."""
+    url = _openai_url(cfg.openai_base_url, "/v1/chat/completions")
+
+    payload: dict[str, Any] = {
+        "model": model,
+        "messages": messages,
+        "stream": True,
+    }
+    if temperature is not None:
+        payload["temperature"] = temperature
+
+    headers = {"Content-Type": "application/json"}
+    if (cfg.openai_api_key or "").strip():
+        headers["Authorization"] = f"Bearer {cfg.openai_api_key}"
+
+    try:
+        async with httpx.AsyncClient(timeout=cfg.request_timeout_s) as client:
+            async with client.stream(
+                "POST", url, headers=headers, content=json.dumps(payload)
+            ) as resp:
+                if resp.status_code >= 400:
+                    body = (await resp.aread()).decode("utf-8", "replace")
+                    raise LlmError(f"LLM HTTP {resp.status_code}: {body[:2000]}")
+                async for line in resp.aiter_lines():
+                    if not line.startswith("data:"):
+                        continue
+                    data = line[len("data:"):].strip()
+                    if data == "[DONE]":
+                        return
+                    try:
+                        chunk = json.loads(data)
+                        delta = chunk["choices"][0].get("delta", {}).get("content")
+                    except Exception:
+                        continue
+                    if delta:
+                        yield delta
+    except httpx.RequestError as e:
+        raise LlmError(f"Could not reach LLM provider at {cfg.openai_base_url}: {e}") from e
+
+
 async def generate_text_reply(
     *,
     cfg: LlmConfig,

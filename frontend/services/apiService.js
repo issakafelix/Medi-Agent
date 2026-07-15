@@ -80,6 +80,75 @@ export async function sendMessage(message, options = {}) {
 }
 
 /**
+ * Send message and stream the AI reply as it is generated (SSE).
+ * handlers.onDelta(fullTextSoFar, latestChunk) fires per chunk.
+ * Resolves to { reply, conversation_id, bot_message_id }.
+ */
+export async function streamMessage(message, options = {}, handlers = {}) {
+  const { conversationId, preset } = options || {};
+  const { onDelta, onMeta } = handlers || {};
+
+  const response = await fetch(`${API_BASE_URL}/chat/stream`, {
+    method: 'POST',
+    headers: await getAuthHeaders(true),
+    body: JSON.stringify({
+      message,
+      timestamp: new Date().toISOString(),
+      conversation_id: conversationId ?? undefined,
+      preset,
+    }),
+  });
+
+  if (!response.ok || !response.body) {
+    let detail = '';
+    try { detail = (await response.json()).detail || ''; } catch (e) { /* no JSON body */ }
+    throw new Error(detail || `HTTP error! status: ${response.status}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let full = '';
+  let meta = null;
+  let botMessageId = null;
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const events = buffer.split('\n\n');
+    buffer = events.pop(); // keep incomplete trailing event
+
+    for (const evt of events) {
+      let eventName = 'message';
+      let data = '';
+      for (const line of evt.split('\n')) {
+        if (line.startsWith('event:')) eventName = line.slice(6).trim();
+        else if (line.startsWith('data:')) data += line.slice(5).trim();
+      }
+      if (!data) continue;
+      let obj;
+      try { obj = JSON.parse(data); } catch (e) { continue; }
+
+      if (eventName === 'meta') {
+        meta = obj;
+        onMeta?.(obj);
+      } else if (eventName === 'done') {
+        botMessageId = obj.bot_message_id ?? null;
+      } else if (eventName === 'error') {
+        throw new Error(obj.message || 'The AI stream failed.');
+      } else if (obj.delta) {
+        full += obj.delta;
+        onDelta?.(full, obj.delta);
+      }
+    }
+  }
+
+  return { reply: full, conversation_id: meta?.conversation_id ?? null, bot_message_id: botMessageId };
+}
+
+/**
  * Get chat history
  */
 export async function getChatHistory(limit = 50) {

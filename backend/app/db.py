@@ -7,10 +7,14 @@ from .config import get_settings
 
 def build_engine():
     settings = get_settings()
+    url = settings.database_url
+    # Neon/Heroku hand out postgres:// URLs; SQLAlchemy 2 needs postgresql://.
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
     connect_args = {}
-    if settings.database_url.startswith("sqlite"):
+    if url.startswith("sqlite"):
         connect_args = {"check_same_thread": False}
-    return create_engine(settings.database_url, echo=False, connect_args=connect_args)
+    return create_engine(url, echo=False, connect_args=connect_args, pool_pre_ping=True)
 
 
 engine = build_engine()
