@@ -1,0 +1,4 @@
+frontend/.env.production
+frontend/.env.local
+backend/.env
+backend/service-account.json

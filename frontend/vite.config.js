@@ -17,6 +17,16 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    // `vite preview` serves only static files; forward API calls to the
+    // live backend so local previews are testable end-to-end.
+    proxy: {
+      '/api': {
+        target: 'https://medi-agent-omega.vercel.app',
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     outDir: 'dist',
     sourcemap: false,
