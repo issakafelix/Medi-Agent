@@ -117,8 +117,8 @@ export default function Message({
                     <code
                       className={`px-1.5 py-0.5 mx-0.5 rounded-md text-[0.9em] font-mono ${
                         isBot 
-                          ? isDarkMode ? 'bg-gray-700 text-teal-300' : 'bg-gray-100 text-teal-600'
-                          : 'bg-teal-700 text-white'
+                          ? isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'
+                          : 'bg-gray-800 text-gray-100'
                       }`}
                     >
                       {raw}
@@ -157,22 +157,22 @@ export default function Message({
           {!hasError && ((isBot && (onCopy || onRegenerate || onLike || onDislike)) || (!isBot && (onEdit || onCopy))) && (
             <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
               {!isBot && onEdit && (
-                <button onClick={onEdit} className="p-1 hover:text-teal-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" title="Edit">
+                <button onClick={onEdit} className="p-1 hover:text-[var(--text-main)] hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" title="Edit">
                   <PencilSquareIcon className="w-3.5 h-3.5" />
                 </button>
               )}
               {onCopy && (
-                <button onClick={onCopy} className="p-1 hover:text-teal-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" title="Copy">
+                <button onClick={onCopy} className="p-1 hover:text-[var(--text-main)] hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" title="Copy">
                   <ClipboardIcon className="w-3.5 h-3.5" />
                 </button>
               )}
               {isBot && onRegenerate && (
-                <button onClick={onRegenerate} className="p-1 hover:text-teal-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" title="Regenerate">
+                <button onClick={onRegenerate} className="p-1 hover:text-[var(--text-main)] hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" title="Regenerate">
                   <ArrowPathIcon className="w-3.5 h-3.5" />
                 </button>
               )}
               {isBot && onLike && (
-                <button onClick={onLike} className={`p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors ${rating === 1 ? 'text-teal-500' : 'hover:text-teal-500'}`} title="Helpful">
+                <button onClick={onLike} className={`p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors ${rating === 1 ? 'text-[var(--text-main)]' : 'hover:text-[var(--text-main)]'}`} title="Helpful">
                   <HandThumbUpIcon className="w-3.5 h-3.5" />
                 </button>
               )}

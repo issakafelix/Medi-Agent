@@ -3,30 +3,36 @@
 @tailwind utilities;
 
 :root {
-  /* ChatGPT-inspired Design Tokens (Light Mode) */
-  --brand-main: #10a37f;      /* GPT Green */
-  --brand-dark: #0e8a6d;
-  --brand-light: #d1f7ec;
+  /* Monochrome Design Tokens (Light Mode): white screen, black ink.
+     --brand-contrast is the text color that sits on --brand-main. */
+  --brand-main: #0d0d0d;
+  --brand-dark: #000000;
+  --brand-light: #ededed;
+  --brand-contrast: #ffffff;
   --bg-color: #ffffff;
-  --bg-sidebar: #f9f9f9;     /* Off-white sidebar */
+  --bg-sidebar: #fafafa;
   --text-main: #0d0d0d;
-  --text-muted: #676767;
-  --border: #e5e5e5;
-  --user-bubble: #f4f4f4;
+  --text-muted: #595959;
+  --border: #e0e0e0;
+  --user-bubble: #f2f2f2;
   --assistant-bg: transparent; /* Assistants blend into feed */
-  
+
   /* Layout */
   --max-content-width: 768px;
 }
 
 .dark {
-  /* ChatGPT-inspired Design Tokens (Dark Mode) */
-  --bg-color: #212121;
-  --bg-sidebar: #171717;     /* Matte black sidebar */
-  --text-main: #ececec;
-  --text-muted: #b4b4b4;
-  --border: #383838;
-  --user-bubble: #2f2f2f;
+  /* Monochrome Design Tokens (Dark Mode): near-black screen, white ink. */
+  --brand-main: #f5f5f5;
+  --brand-dark: #ffffff;
+  --brand-light: #262626;
+  --brand-contrast: #0d0d0d;
+  --bg-color: #121212;
+  --bg-sidebar: #0a0a0a;
+  --text-main: #f5f5f5;
+  --text-muted: #a6a6a6;
+  --border: #2e2e2e;
+  --user-bubble: #1f1f1f;
   --assistant-bg: transparent;
 }
 
@@ -70,8 +76,8 @@
 }
 
 @keyframes orbGlow {
-  0%, 100% { box-shadow: 0 0 40px 8px rgba(139,92,246,0.15), 0 0 80px 20px rgba(139,92,246,0.05); }
-  50%       { box-shadow: 0 0 60px 16px rgba(139,92,246,0.30), 0 0 120px 40px rgba(139,92,246,0.10); }
+  0%, 100% { box-shadow: 0 0 40px 8px rgba(128,128,128,0.12), 0 0 80px 20px rgba(128,128,128,0.04); }
+  50%       { box-shadow: 0 0 60px 16px rgba(128,128,128,0.22), 0 0 120px 40px rgba(128,128,128,0.08); }
 }
 
 @keyframes ringPulse {
@@ -81,8 +87,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 15px -3px rgba(139, 92, 246, 0.4); }
-  50%       { box-shadow: 0 0 30px -3px rgba(139, 92, 246, 0.7); }
+  0%, 100% { box-shadow: 0 0 15px -3px rgba(128, 128, 128, 0.35); }
+  50%       { box-shadow: 0 0 30px -3px rgba(128, 128, 128, 0.6); }
 }
 
 @keyframes gradient-shift {
@@ -194,7 +200,7 @@ textarea {
 
 .focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 0 2px rgba(128, 128, 128, 0.6);
 }
 
 /* Button hover glow effect */
@@ -203,7 +209,7 @@ textarea {
 }
 
 .btn-glow:hover {
-  box-shadow: 0 0 20px -5px rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 20px -5px rgba(128, 128, 128, 0.5);
 }
 
 /* Message bubble shapes */

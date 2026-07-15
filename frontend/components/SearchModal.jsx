@@ -148,8 +148,8 @@ export default function SearchModal({ isOpen, onClose, isDarkMode, conversations
                       result.type === 'chat'
                         ? isDarkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700'
                         : result.sender === 'bot'
-                          ? isDarkMode ? 'bg-green-900/50 text-teal-300' : 'bg-green-100 text-teal-700'
-                          : isDarkMode ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700'
+                          ? isDarkMode ? 'bg-gray-700/70 text-gray-200' : 'bg-gray-200 text-gray-800'
+                          : isDarkMode ? 'bg-gray-600/60 text-gray-100' : 'bg-gray-300 text-gray-900'
                     }`}>
                       {result.type === 'chat' ? 'Chat' : result.sender === 'bot' ? 'AI' : 'You'}
                     </span>

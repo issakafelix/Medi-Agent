@@ -13,8 +13,8 @@ export const useDarkMode = () => {
     const stored = localStorage.getItem('isDarkMode');
     if (stored !== null) return JSON.parse(stored);
 
-    // Check system preference
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    // Default to dark mode for first-time visitors
+    return true;
   });
 
   useEffect(() => {

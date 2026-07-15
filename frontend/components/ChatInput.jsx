@@ -71,8 +71,8 @@ export default function ChatInput({
                    onClick={() => onPromptPresetChange?.(preset.key)}
                    className={`flex items-center gap-1.5 px-3 py-1 bg-transparent rounded-full text-[11px] font-semibold transition-all border whitespace-nowrap shadow-sm ${
                      promptPresetKey === preset.key
-                       ? 'text-white border-[var(--brand-main)] bg-[var(--brand-main)]'
-                       : 'text-gray-600 border-gray-200 bg-white hover:bg-gray-50'
+                       ? 'text-[var(--brand-contrast)] border-[var(--brand-main)] bg-[var(--brand-main)]'
+                       : 'text-[var(--text-muted)] border-[var(--border)] bg-[var(--bg-color)] hover:bg-[var(--user-bubble)]'
                    }`}
                  >
                    {preset.label}
@@ -145,7 +145,7 @@ export default function ChatInput({
                 disabled={isLoading || isListening}
                 className={`p-2.5 rounded-full transition-colors ${
                   inputMode === 'image'
-                    ? 'bg-[var(--brand-main)] text-white'
+                    ? 'bg-[var(--brand-main)] text-[var(--brand-contrast)]'
                     : 'text-gray-400 hover:bg-[var(--brand-light)] hover:text-[var(--brand-main)]'
                 }`}
                 aria-label={inputMode === 'image' ? 'Switch to text mode' : 'Switch to image mode'}
@@ -176,8 +176,8 @@ export default function ChatInput({
                   disabled={!input.trim() || isLoading}
                   className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${
                     !input.trim() || isLoading
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-[var(--brand-main)] text-white shadow-lg hover:bg-[var(--brand-dark)]'
+                      ? 'bg-[var(--user-bubble)] text-[var(--text-muted)] cursor-not-allowed'
+                      : 'bg-[var(--brand-main)] text-[var(--brand-contrast)] shadow-lg hover:bg-[var(--brand-dark)]'
                   }`}
                 >
                   <ArrowUpIcon className="w-4 h-4 stroke-2" />

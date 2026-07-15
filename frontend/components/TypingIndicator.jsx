@@ -18,19 +18,19 @@ export default function TypingIndicator({ isDarkMode }) {
           <div className="flex items-center gap-1.5">
             <div
               className={`w-2.5 h-2.5 rounded-full ${
-                isDarkMode ? 'bg-blue-400' : 'bg-blue-500'
+                isDarkMode ? 'bg-gray-400' : 'bg-gray-500'
               } animate-bounce`}
               style={{ animationDelay: '0s' }}
             />
             <div
               className={`w-2.5 h-2.5 rounded-full ${
-                isDarkMode ? 'bg-blue-400' : 'bg-blue-500'
+                isDarkMode ? 'bg-gray-400' : 'bg-gray-500'
               } animate-bounce`}
               style={{ animationDelay: '0.15s' }}
             />
             <div
               className={`w-2.5 h-2.5 rounded-full ${
-                isDarkMode ? 'bg-blue-400' : 'bg-blue-500'
+                isDarkMode ? 'bg-gray-400' : 'bg-gray-500'
               } animate-bounce`}
               style={{ animationDelay: '0.3s' }}
             />

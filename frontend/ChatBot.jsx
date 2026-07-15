@@ -1670,7 +1670,7 @@ export default function ChatBot({ isDarkMode: controlledDarkMode, onToggleDarkMo
                 {/* Logo or Icon */}
                 <div className="w-12 h-12 rounded-full border border-[var(--border)] flex items-center justify-center mb-6 shadow-sm">
                    <div className="w-8 h-8 rounded bg-[var(--brand-main)] flex items-center justify-center">
-                     <span className="text-white font-bold italic text-sm">H</span>
+                     <span className="text-[var(--brand-contrast)] font-bold italic text-sm">H</span>
                    </div>
                 </div>
 
@@ -1802,7 +1802,7 @@ function HeaderLogo() {
   return (
     <div className="flex items-center gap-3">
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--brand-main)] to-[var(--brand-dark)] flex items-center justify-center text-white font-bold text-sm shadow-md border border-white/10">
+        <div className="w-8 h-8 rounded-full bg-[var(--brand-main)] flex items-center justify-center text-[var(--brand-contrast)] font-bold text-sm shadow-md border border-[var(--border)]">
           AI
         </div>
         <span className="hidden sm:inline-block font-bold text-sm text-[var(--user-text)]">AI Health</span>

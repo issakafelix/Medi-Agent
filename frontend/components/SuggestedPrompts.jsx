@@ -11,7 +11,7 @@ export default function SuggestedPrompts({ suggestions, onSelect, isDarkMode, is
   return (
     <div className="animate-fadeIn mt-2 sm:mt-3 ml-8 sm:ml-12">
       <div className="flex items-center gap-1.5 mb-1.5 sm:mb-2">
-        <SparklesIcon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-500'}`} />
+        <SparklesIcon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
         <span className={`text-[10px] sm:text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
           Continue the conversation
         </span>

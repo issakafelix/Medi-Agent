@@ -321,7 +321,7 @@ export default function SymptomWizard() {
           <div className="header-inner">
             <div className="brand">
               <svg className="brand-mark" viewBox="0 0 24 24" fill="none">
-                <path d="M2 12h4l2-7 4 14 2-9 2 5h6" stroke="#1F6F5C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M2 12h4l2-7 4 14 2-9 2 5h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               <div>
                 <div className="brand-name">MediAgent</div>
