@@ -84,13 +84,13 @@ def create_app() -> FastAPI:
                 from firebase_admin import credentials
 
                 fs = settings.firebase_service_account_json.strip()
-                path = Path(fs)
-                if path.exists():
-                    with open(path, 'r', encoding='utf-8') as fh:
-                        cert_dict = json.load(fh)
-                else:
-                    # Treat the value as JSON string
+                # A JSON blob starts with "{"; anything else is a file path.
+                # (Calling Path.exists() on the blob raises "File name too long".)
+                if fs.startswith("{"):
                     cert_dict = json.loads(fs)
+                else:
+                    with open(fs, 'r', encoding='utf-8') as fh:
+                        cert_dict = json.load(fh)
 
                 cred = credentials.Certificate(cert_dict)
                 firebase_admin.initialize_app(cred)
