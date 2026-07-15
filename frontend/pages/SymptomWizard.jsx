@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { sendMessage, streamMessage, rateMessage, geocodeLocation, findNearbyHospitals } from '../services/apiService';
+import { sendMessage, streamMessage, rateMessage, getConversations, getConversation, geocodeLocation, findNearbyHospitals } from '../services/apiService';
 import { formatReply } from '../utils/formatReply';
 import FirebaseAuth from '../components/FirebaseAuth';
 import '../styles/symptomWizard.css';
@@ -53,6 +53,10 @@ const WarningIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}><path d="M12 9v4M12 17h.01M10.3 3.9L2.8 17a1.7 1.7 0 0 0 1.5 2.5h15.4a1.7 1.7 0 0 0 1.5-2.5L13.7 3.9a1.7 1.7 0 0 0-3 0Z" /></svg>
 );
 
+const ClockIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+);
+
 export default function SymptomWizard() {
   const [step, setStep] = useState(1);
   const [symptomText, setSymptomText] = useState('');
@@ -67,6 +71,13 @@ export default function SymptomWizard() {
   const [redFlags, setRedFlags] = useState([]);
   const [assessmentMsgId, setAssessmentMsgId] = useState(null);
   const [assessmentRating, setAssessmentRating] = useState(0);
+
+  // History panel
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historySignedIn, setHistorySignedIn] = useState(false);
+  const [historyStatus, setHistoryStatus] = useState('idle'); // idle | loading | done | error
+  const [historyList, setHistoryList] = useState([]);
+  const [historyDetail, setHistoryDetail] = useState(null);
 
   // Hospital locator (OpenStreetMap — no API key). Independent of `error`/
   // `loadingStage` above since it can fail (or take longer) separately from
@@ -260,6 +271,32 @@ export default function SymptomWizard() {
     }
   }
 
+  function openHistory() {
+    setHistoryOpen(true);
+    setHistoryDetail(null);
+    // Only signed-in users get personal history; guests share one anonymous
+    // identity server-side, so showing "their" history would leak others'.
+    let signed = false;
+    try { signed = !!window.localStorage.getItem('FIREBASE_ID_TOKEN'); } catch (e) { /* private mode */ }
+    setHistorySignedIn(signed);
+    if (!signed) return;
+    setHistoryStatus('loading');
+    getConversations(50)
+      .then((res) => { setHistoryList(res.conversations || []); setHistoryStatus('done'); })
+      .catch(() => setHistoryStatus('error'));
+  }
+
+  async function openHistoryConversation(id) {
+    setHistoryStatus('loading');
+    try {
+      const detail = await getConversation(id);
+      setHistoryDetail(detail);
+      setHistoryStatus('done');
+    } catch (e) {
+      setHistoryStatus('error');
+    }
+  }
+
   async function handleRateAssessment(value) {
     if (!assessmentMsgId) return;
     const next = assessmentRating === value ? 0 : value;
@@ -400,6 +437,66 @@ export default function SymptomWizard() {
 
   return (
     <div className="symptom-wizard" ref={rootRef}>
+      {historyOpen && (
+        <div className="history-overlay" onClick={() => setHistoryOpen(false)}>
+          <aside className="history-panel" role="dialog" aria-label="Chat history" onClick={(e) => e.stopPropagation()}>
+            <div className="history-head">
+              {historyDetail ? (
+                <button type="button" className="history-nav" onClick={() => setHistoryDetail(null)}>← All sessions</button>
+              ) : (
+                <div className="history-title">Your past sessions</div>
+              )}
+              <button type="button" className="history-nav" onClick={() => setHistoryOpen(false)} aria-label="Close history">✕</button>
+            </div>
+
+            {!historySignedIn && (
+              <div className="history-empty">
+                Sign in (top right) to keep your sessions — your history will appear here on any device.
+              </div>
+            )}
+
+            {historySignedIn && historyStatus === 'loading' && (
+              <div className="history-empty">Loading…</div>
+            )}
+
+            {historySignedIn && historyStatus === 'error' && (
+              <div className="history-empty">Couldn&rsquo;t load history. Close and try again.</div>
+            )}
+
+            {historySignedIn && historyStatus === 'done' && !historyDetail && (
+              historyList.length === 0 ? (
+                <div className="history-empty">No saved sessions yet — run a symptom check and it will appear here.</div>
+              ) : (
+                <div className="history-list">
+                  {historyList.map((c) => (
+                    <button
+                      key={c.conversation_id}
+                      type="button"
+                      className="history-item"
+                      onClick={() => openHistoryConversation(c.conversation_id)}
+                    >
+                      <span className="history-item-title">{c.title}</span>
+                      <span className="history-item-date">{new Date(c.updated_at).toLocaleDateString()}</span>
+                    </button>
+                  ))}
+                </div>
+              )
+            )}
+
+            {historySignedIn && historyStatus === 'done' && historyDetail && (
+              <div className="history-messages">
+                {historyDetail.messages.map((m) => (
+                  <div key={m.message_id} className={`history-msg${m.role === 'bot' ? ' bot' : ''}`}>
+                    <div className="history-msg-role">{m.role === 'bot' ? 'MediAgent' : 'You'}</div>
+                    <div className="history-msg-content">{formatReply(m.content)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </aside>
+        </div>
+      )}
+
       <div className="sticky-top" ref={stickyTopRef}>
         <header>
           <div className="header-inner">
@@ -417,6 +514,10 @@ export default function SymptomWizard() {
                 <WarningIcon />
                 Informational only, not a diagnosis
               </div>
+              <button type="button" className="history-btn" onClick={openHistory} aria-label="View chat history">
+                <ClockIcon />
+                <span>History</span>
+              </button>
               <FirebaseAuth />
             </div>
           </div>
