@@ -28,14 +28,19 @@
   --radius:16px;
 
   height:100vh;
+  height:100dvh; /* dynamic viewport: mobile browser toolbars no longer hide the bottom */
   overflow-y:auto;
   overflow-x:hidden;
   scroll-behavior:smooth;
-  background:var(--paper);
+  background:
+    radial-gradient(1100px 440px at 50% -180px, var(--teal-soft), transparent 70%),
+    var(--paper);
   color:var(--ink);
   font-family:'Inter',sans-serif;
   -webkit-font-smoothing:antialiased;
   -webkit-text-size-adjust:100%;
+  scrollbar-width:thin;
+  scrollbar-color:var(--line) transparent;
 }
 
 /* Monochrome DARK palette: near-black screen, white ink. */
@@ -55,22 +60,39 @@
 
 .symptom-wizard a{color:inherit;text-decoration:none;}
 
-.symptom-wizard .wrap{max-width:840px;margin:0 auto;padding:0 24px 100px 24px;}
+.symptom-wizard .wrap{
+  max-width:840px;margin:0 auto;
+  padding:0 clamp(16px, 4vw, 24px) 100px;
+  /* Notched phones in landscape: never let content slip under the sensor housing. */
+  padding-left:max(clamp(16px, 4vw, 24px), env(safe-area-inset-left));
+  padding-right:max(clamp(16px, 4vw, 24px), env(safe-area-inset-right));
+}
 
 /* ---------- HEADER + JOURNEY (stick together as one block so the
    journey bar's offset never has to guess the header's height) ---------- */
 .symptom-wizard .sticky-top{
   position:sticky;top:0;z-index:20;
   background:var(--paper);
+  border-bottom:1px solid var(--line);
+}
+/* Frosted-glass sticky bar where the browser supports it; the solid
+   paper background above stays as the fallback. */
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .symptom-wizard .sticky-top{
+    background:color-mix(in srgb, var(--paper) 84%, transparent);
+    -webkit-backdrop-filter:blur(14px) saturate(1.4);
+    backdrop-filter:blur(14px) saturate(1.4);
+  }
 }
 .symptom-wizard header{
-  background:var(--paper);
   border-bottom:1px solid var(--line);
   padding-top:env(safe-area-inset-top);
 }
 .symptom-wizard .header-inner{
   max-width:840px;margin:0 auto;
-  padding:18px 24px;
+  padding:18px clamp(16px, 4vw, 24px);
+  padding-left:max(clamp(16px, 4vw, 24px), env(safe-area-inset-left));
+  padding-right:max(clamp(16px, 4vw, 24px), env(safe-area-inset-right));
   display:flex;align-items:center;justify-content:space-between;
   gap:12px;
 }
@@ -144,12 +166,14 @@
 .symptom-wizard .auth-btn:disabled{opacity:0.6;cursor:not-allowed;}
 
 .symptom-wizard .journey{
-  background:var(--paper);
-  padding:16px 0 20px 0;
+  padding:16px 0 18px 0;
 }
 .symptom-wizard .journey-track{
   display:flex;align-items:center;
-  max-width:840px;margin:0 auto;padding:0 24px;
+  max-width:840px;margin:0 auto;
+  padding:0 clamp(16px, 4vw, 24px);
+  padding-left:max(clamp(16px, 4vw, 24px), env(safe-area-inset-left));
+  padding-right:max(clamp(16px, 4vw, 24px), env(safe-area-inset-right));
 }
 .symptom-wizard .j-step{
   display:flex;align-items:center;gap:9px;
@@ -198,19 +222,27 @@
 }
 .symptom-wizard h1.hero-title{
   font-family:'Newsreader',serif;
-  font-size:34px;font-weight:500;line-height:1.15;
+  /* Fluid: ~23px on a 320px phone → 38px on desktop, no breakpoint jumps. */
+  font-size:clamp(23px, 3.2vw + 13px, 38px);
+  font-weight:500;line-height:1.15;
   letter-spacing:-0.01em;
   margin:0 0 10px 0;
+  text-wrap:balance;
 }
 .symptom-wizard h1.hero-title em{font-style:italic;color:var(--teal);font-weight:600;}
-.symptom-wizard .hero-sub{font-size:14.5px;color:var(--muted);max-width:520px;line-height:1.6;margin-bottom:28px;}
+.symptom-wizard .hero-sub{
+  font-size:clamp(13.5px, 0.35vw + 12.5px, 15px);
+  color:var(--muted);max-width:520px;line-height:1.6;margin-bottom:28px;
+}
 
 .symptom-wizard .card{
   background:var(--card);
   border:1px solid var(--line);
   border-radius:var(--radius);
-  padding:22px;
+  padding:clamp(18px, 2.5vw, 24px);
+  box-shadow:0 1px 2px rgba(0,0,0,.04), 0 12px 32px -18px rgba(0,0,0,.12);
 }
+.dark .symptom-wizard .card{box-shadow:none;}
 
 /* ---------- ERROR BANNER ---------- */
 .symptom-wizard .error-banner{
@@ -295,7 +327,8 @@
 /* ---------- RESULT SECTIONS ---------- */
 .symptom-wizard .section-title{
   font-family:'Newsreader',serif;
-  font-size:21px;font-weight:500;margin-bottom:4px;
+  font-size:clamp(19px, 0.6vw + 17px, 22px);
+  font-weight:500;margin-bottom:4px;
 }
 .symptom-wizard .section-desc{font-size:13px;color:var(--muted);margin-bottom:18px;}
 
@@ -359,7 +392,9 @@
 
 /* ---------- LEAFLET MAP ---------- */
 .symptom-wizard .hospital-map{
-  height:220px;border-radius:12px;overflow:hidden;
+  /* Scales with the viewport: ~180px on small phones, up to 320px on desktop. */
+  height:clamp(180px, 30vh, 320px);
+  border-radius:12px;overflow:hidden;
   border:1px solid var(--line);
   margin-bottom:18px;
   background:var(--teal-soft);

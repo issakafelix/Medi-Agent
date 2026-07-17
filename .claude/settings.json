@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx playwright *)",
+      "Read(//home/felix/.cache/**)",
+      "Bash(python3 -c ' *)",
+      "Bash(node --check /tmp/claude-1000/-home-felix-Desktop-healt-status/388f4a1c-f5fc-492c-9ce9-8da502aca8bc/scratchpad/inline.js)",
+      "Bash(curl -s http://127.0.0.1:4173/)",
+      "Bash(npx eslint *)",
+      "Bash(npx vite *)",
+      "Bash(timeout 90 npx playwright install chromium --with-deps)",
+      "Bash(timeout 90 npx playwright install chromium)",
+      "Bash(node /tmp/claude-1000/-home-felix-Desktop-healt-status/388f4a1c-f5fc-492c-9ce9-8da502aca8bc/scratchpad/verify.mjs)",
+      "Bash(timeout 90 npx playwright install chromium-headless-shell)",
+      "Bash(find ~/.cache/ms-playwright -type f 2>&1 | head -30; echo \"---\"; du -sh ~/.cache/ms-playwright/chromium_headless_shell-1200 2>&1)",
+      "Read(//home/felix/.cache/ms-playwright/**)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"http://127.0.0.1:4173/pages/SymptomWizard.jsx\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"http://127.0.0.1:4173/App.jsx\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"http://127.0.0.1:4173/utils/formatReply.jsx\")",
+      "Bash(curl -s \"http://127.0.0.1:4173/pages/SymptomWizard.jsx\")",
+      "Bash(npm run *)",
+      "Bash(grep -i \"service-account\\\\|\\\\.env$\\\\|\\\\.env\\\\.\")"
+    ]
+  }
+}
