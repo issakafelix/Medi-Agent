@@ -73,7 +73,38 @@
 .symptom-wizard .sticky-top{
   position:sticky;top:0;z-index:20;
   background:var(--paper);
-  border-bottom:1px solid var(--line);
+  /* Flat while the page is at rest; the boundary only appears on scroll. */
+  border-bottom:1px solid transparent;
+  transition:border-color .35s ease, box-shadow .35s ease;
+}
+/* `is-scrolled` is toggled from JS the moment content slides beneath the
+   bar: the boundary turns into a hairline + soft elevation shadow, and the
+   bar compresses (header/journey paddings below). */
+.symptom-wizard .sticky-top.is-scrolled{
+  border-bottom-color:var(--line);
+  box-shadow:0 10px 28px -18px rgba(0,0,0,.35);
+}
+.dark .symptom-wizard .sticky-top.is-scrolled{
+  box-shadow:0 12px 30px -14px rgba(0,0,0,.85);
+}
+/* Thin progress line hugging the bar's bottom edge; scaleX is driven by
+   --scroll-progress (set per scroll frame from JS, no React re-render). */
+.symptom-wizard .scroll-progress{
+  position:absolute;left:0;right:0;bottom:-1px;
+  height:2px;
+  background:var(--teal);
+  transform:scaleX(var(--scroll-progress, 0));
+  transform-origin:0 50%;
+  opacity:0;
+  transition:opacity .3s ease;
+  pointer-events:none;
+}
+.symptom-wizard .sticky-top.is-scrolled .scroll-progress{opacity:1;}
+@media (prefers-reduced-motion: reduce){
+  .symptom-wizard .sticky-top,
+  .symptom-wizard .scroll-progress,
+  .symptom-wizard .header-inner,
+  .symptom-wizard .journey{transition:none;}
 }
 /* Frosted-glass sticky bar where the browser supports it; the solid
    paper background above stays as the fallback. */
@@ -95,6 +126,10 @@
   padding-right:max(clamp(16px, 4vw, 24px), env(safe-area-inset-right));
   display:flex;align-items:center;justify-content:space-between;
   gap:12px;
+  transition:padding .35s ease;
+}
+.symptom-wizard .sticky-top.is-scrolled .header-inner{
+  padding-top:10px;padding-bottom:10px;
 }
 .symptom-wizard .brand{display:flex;align-items:center;gap:10px;min-width:0;}
 .symptom-wizard .brand > div{min-width:0;}
@@ -167,6 +202,10 @@
 
 .symptom-wizard .journey{
   padding:16px 0 18px 0;
+  transition:padding .35s ease;
+}
+.symptom-wizard .sticky-top.is-scrolled .journey{
+  padding:10px 0 12px 0;
 }
 .symptom-wizard .journey-track{
   display:flex;align-items:center;
@@ -229,7 +268,8 @@
   margin:0 0 10px 0;
   text-wrap:balance;
 }
-.symptom-wizard h1.hero-title em{font-style:italic;color:var(--teal);font-weight:600;}
+/* Emphasis stays upright — accent color + weight only, no slant. */
+.symptom-wizard h1.hero-title em{font-style:normal;color:var(--teal);font-weight:600;}
 .symptom-wizard .hero-sub{
   font-size:clamp(13.5px, 0.35vw + 12.5px, 15px);
   color:var(--muted);max-width:520px;line-height:1.6;margin-bottom:28px;

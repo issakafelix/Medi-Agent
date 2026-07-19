@@ -129,6 +129,33 @@ export default function SymptomWizard() {
     return () => window.removeEventListener('resize', update);
   }, []);
 
+  // Mark the sticky bar as soon as content slides beneath it (`is-scrolled`
+  // drives the hairline/shadow/compression in CSS) and feed the progress
+  // line via a CSS var — direct DOM writes per frame, no React re-render.
+  useEffect(() => {
+    const root = rootRef.current;
+    const sticky = stickyTopRef.current;
+    if (!root || !sticky) return;
+
+    let raf = 0;
+    function onScroll() {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        sticky.classList.toggle('is-scrolled', root.scrollTop > 8);
+        const max = root.scrollHeight - root.clientHeight;
+        sticky.style.setProperty('--scroll-progress', max > 0 ? String(root.scrollTop / max) : '0');
+      });
+    }
+
+    onScroll();
+    root.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      root.removeEventListener('scroll', onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   // Escape dismisses the error banner from anywhere.
   useEffect(() => {
     function onKeyDown(e) {
@@ -555,6 +582,8 @@ export default function SymptomWizard() {
             ))}
           </div>
         </div>
+
+        <span className="scroll-progress" aria-hidden="true" />
       </div>
 
       <div className="wrap">
