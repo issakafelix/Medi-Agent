@@ -66,7 +66,7 @@ const MoonIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>
 );
 
-export default function SymptomWizard() {
+export default function SymptomWizard({ onOpenAuth }) {
   const [isDarkMode, setIsDarkMode] = useDarkMode();
   const [step, setStep] = useState(1);
   const [symptomText, setSymptomText] = useState('');
@@ -109,25 +109,6 @@ export default function SymptomWizard() {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
-
-  // Keep scroll-padding-top matched to the sticky header+journey block's
-  // actual height, instead of guessing a fixed offset — avoids content
-  // landing partly hidden behind the sticky bar after scrollIntoView.
-  useEffect(() => {
-    const root = rootRef.current;
-    const sticky = stickyTopRef.current;
-    if (!root || !sticky) return;
-
-    function update() {
-      const isSticky = getComputedStyle(sticky).position === 'sticky';
-      const h = sticky.getBoundingClientRect().height;
-      root.style.scrollPaddingTop = isSticky ? `${h + 16}px` : '0px';
-    }
-
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, []);
 
   // Mark the sticky bar as soon as content slides beneath it (`is-scrolled`
   // drives the hairline/shadow/compression in CSS) and feed the progress
@@ -242,15 +223,6 @@ export default function SymptomWizard() {
       }
     };
   }, []);
-
-  async function callChat(message) {
-    const res = await sendMessage(message, {
-      conversationId: conversationId ?? undefined,
-      preset: 'default',
-    });
-    setConversationId(res.conversation_id);
-    return res.reply;
-  }
 
   // Streaming variant: onText receives the growing reply so the UI can render
   // it word-by-word. Falls back to the non-streaming endpoint on failure.
@@ -472,8 +444,18 @@ export default function SymptomWizard() {
     }
   }
 
+  // Logo click = fresh start. The ECG line redraws once as feedback, then
+  // the page reloads; under reduced motion the reload is immediate.
+  function handleBrandRefresh(e) {
+    const btn = e.currentTarget;
+    if (btn.classList.contains('is-refreshing')) return;
+    btn.classList.add('is-refreshing');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setTimeout(() => window.location.reload(), reduced ? 0 : 500);
+  }
+
   return (
-    <div className="symptom-wizard" ref={rootRef}>
+    <div className="symptom-wizard">
       {historyOpen && (
         <div className="history-overlay" onClick={() => setHistoryOpen(false)}>
           <aside className="history-panel" role="dialog" aria-label="Chat history" onClick={(e) => e.stopPropagation()}>
@@ -537,15 +519,21 @@ export default function SymptomWizard() {
       <div className="sticky-top" ref={stickyTopRef}>
         <header>
           <div className="header-inner">
-            <div className="brand">
-              <svg className="brand-mark" viewBox="0 0 24 24" fill="none">
+            <button
+              type="button"
+              className="brand"
+              onClick={handleBrandRefresh}
+              title="Refresh MediAgent"
+              aria-label="Refresh MediAgent and start over"
+            >
+              <svg className="brand-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M2 12h4l2-7 4 14 2-9 2 5h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               <div>
                 <div className="brand-name">MediAgent</div>
                 <div className="brand-tag">Symptoms → first aid → nearest care</div>
               </div>
-            </div>
+            </button>
             <div className="header-actions">
               <div className="disclaimer-pill">
                 <WarningIcon />
@@ -564,7 +552,7 @@ export default function SymptomWizard() {
                 <ClockIcon />
                 <span>History</span>
               </button>
-              <FirebaseAuth />
+              <FirebaseAuth onOpenAuth={onOpenAuth} />
             </div>
           </div>
         </header>
@@ -586,6 +574,9 @@ export default function SymptomWizard() {
         <span className="scroll-progress" aria-hidden="true" />
       </div>
 
+      {/* Scrolling lives here (not on the wizard root) so the scrollbar
+          starts below the header instead of running across it. */}
+      <div className="scroll-region" ref={rootRef}>
       <div className="wrap">
         {redFlags.length > 0 && (
           <div className="emergency-banner" role="alert">
@@ -850,6 +841,7 @@ export default function SymptomWizard() {
         )}
 
         <footer>MediAgent is a research prototype and does not replace professional medical care. In an emergency, contact local emergency services immediately.</footer>
+      </div>
       </div>
     </div>
   );

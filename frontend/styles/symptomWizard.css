@@ -25,13 +25,24 @@
   --amber-soft:#f4e8d2;
   --line:#dcdcdc;
   --muted:#595959;
+  /* Text accent: the one real color in the otherwise monochrome palette.
+     Used for emphasized words, eyebrows, labels and links — never for
+     large surfaces, so the mono look survives. AA on both papers. */
+  --accent:#0f766e;
+  --accent-soft:#e4f2f0;
   --radius:16px;
+  /* Single source of truth for the centered column; widened fluidly on
+     large screens (media query near .wrap) so the app fills a desktop
+     monitor instead of staying a fixed 840px strip. */
+  --content-max:840px;
 
   height:100vh;
   height:100dvh; /* dynamic viewport: mobile browser toolbars no longer hide the bottom */
-  overflow-y:auto;
-  overflow-x:hidden;
-  scroll-behavior:smooth;
+  display:flex;
+  flex-direction:column;
+  /* Scrolling belongs to .scroll-region below the header, so the scrollbar
+     never runs across the header bar. */
+  overflow:hidden;
   background:
     radial-gradient(1100px 440px at 50% -180px, var(--teal-soft), transparent 70%),
     var(--paper);
@@ -39,6 +50,17 @@
   font-family:'Inter',sans-serif;
   -webkit-font-smoothing:antialiased;
   -webkit-text-size-adjust:100%;
+}
+
+.symptom-wizard .scroll-region{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scroll-behavior:smooth;
+  /* Sections land a touch below the top edge after scrollIntoView; the
+     header sits outside this scroll area, so no dynamic offset needed. */
+  scroll-padding-top:16px;
   scrollbar-width:thin;
   scrollbar-color:var(--line) transparent;
 }
@@ -56,12 +78,14 @@
   --amber-soft:#332a18;
   --line:#2e2e2e;
   --muted:#a3a3a3;
+  --accent:#3ed3b9;
+  --accent-soft:#11322c;
 }
 
 .symptom-wizard a{color:inherit;text-decoration:none;}
 
 .symptom-wizard .wrap{
-  max-width:840px;margin:0 auto;
+  max-width:var(--content-max);margin:0 auto;
   padding:0 clamp(16px, 4vw, 24px) 100px;
   /* Notched phones in landscape: never let content slip under the sensor housing. */
   padding-left:max(clamp(16px, 4vw, 24px), env(safe-area-inset-left));
@@ -92,7 +116,7 @@
 .symptom-wizard .scroll-progress{
   position:absolute;left:0;right:0;bottom:-1px;
   height:2px;
-  background:var(--teal);
+  background:var(--accent);
   transform:scaleX(var(--scroll-progress, 0));
   transform-origin:0 50%;
   opacity:0;
@@ -120,7 +144,7 @@
   padding-top:env(safe-area-inset-top);
 }
 .symptom-wizard .header-inner{
-  max-width:840px;margin:0 auto;
+  max-width:var(--content-max);margin:0 auto;
   padding:18px clamp(16px, 4vw, 24px);
   padding-left:max(clamp(16px, 4vw, 24px), env(safe-area-inset-left));
   padding-right:max(clamp(16px, 4vw, 24px), env(safe-area-inset-right));
@@ -131,9 +155,49 @@
 .symptom-wizard .sticky-top.is-scrolled .header-inner{
   padding-top:10px;padding-bottom:10px;
 }
-.symptom-wizard .brand{display:flex;align-items:center;gap:10px;min-width:0;}
+/* The logo is a button: clicking it refreshes the app (fresh start). */
+.symptom-wizard .brand{
+  display:flex;align-items:center;gap:10px;min-width:0;
+  background:none;border:none;padding:0;margin:0;
+  font:inherit;color:inherit;text-align:left;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1), opacity .25s ease;
+}
+.symptom-wizard .brand:hover{transform:translateY(-1px);}
+.symptom-wizard .brand:active{transform:translateY(0) scale(.97);}
+.symptom-wizard .brand:focus-visible{outline:2px solid var(--teal);outline-offset:4px;border-radius:8px;}
 .symptom-wizard .brand > div{min-width:0;}
-.symptom-wizard .brand-mark{width:26px;height:26px;flex-shrink:0;}
+.symptom-wizard .brand-mark{
+  width:26px;height:26px;flex-shrink:0;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+  /* Idle heartbeat: a gentle double-thump every 5s so the mark reads as alive. */
+  animation:sw-heartbeat 5s ease-in-out infinite;
+}
+/* On hover the idle pulse yields to a springy scale-up + the ECG line
+   redrawing itself once (path length ≈ 47, dash 48 covers it). */
+.symptom-wizard .brand:hover .brand-mark{animation:none;transform:scale(1.12);}
+.symptom-wizard .brand:hover .brand-mark path{animation:sw-ecg-draw .9s cubic-bezier(.65,0,.35,1);}
+/* Click feedback while the reload kicks in: fade the button, redraw the line. */
+.symptom-wizard .brand.is-refreshing{opacity:.5;}
+.symptom-wizard .brand.is-refreshing .brand-mark path{animation:sw-ecg-draw .5s cubic-bezier(.65,0,.35,1) infinite;}
+@keyframes sw-ecg-draw{
+  from{stroke-dasharray:48;stroke-dashoffset:48;}
+  to{stroke-dasharray:48;stroke-dashoffset:0;}
+}
+@keyframes sw-heartbeat{
+  0%,86%,100%{transform:scale(1);}
+  90%{transform:scale(1.12);}
+  94%{transform:scale(1);}
+  97%{transform:scale(1.06);}
+}
+@media (prefers-reduced-motion: reduce){
+  .symptom-wizard .brand,
+  .symptom-wizard .brand-mark{transition:none;animation:none;}
+  .symptom-wizard .brand-mark path{animation:none !important;}
+  .symptom-wizard .brand:hover,
+  .symptom-wizard .brand:hover .brand-mark{transform:none;}
+}
 .symptom-wizard .brand-name{
   font-family:'Newsreader',serif;
   font-size:19px;font-weight:600;letter-spacing:-0.01em;
@@ -182,23 +246,163 @@
 .symptom-wizard .auth-avatar{width:24px;height:24px;border-radius:50%;flex-shrink:0;object-fit:cover;background:var(--teal-soft);}
 .symptom-wizard .auth-user-name{font-size:12.5px;color:var(--ink);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
-.symptom-wizard .auth-email-form{
-  position:absolute;top:calc(100% + 8px);right:0;z-index:30;
-  display:flex;flex-direction:column;gap:8px;
-  background:var(--card);border:1px solid var(--line);border-radius:12px;
-  padding:12px;width:220px;
-  box-shadow:0 8px 24px rgba(0,0,0,0.5);
-}
-.symptom-wizard .auth-email-input{
-  border:1px solid var(--line);border-radius:8px;
-  padding:8px 10px;font-size:13px;font-family:'Inter',sans-serif;
-  background:var(--paper);color:var(--ink);
-}
-.symptom-wizard .auth-email-input:focus-visible{outline:2px solid var(--teal);outline-offset:1px;}
 .symptom-wizard .auth-error{
   font-size:11.5px;color:var(--coral);line-height:1.4;
+  animation:sw-shake .45s cubic-bezier(.36,.07,.19,.97);
+}
+@keyframes sw-shake{
+  10%,90%{transform:translateX(-1px);}
+  20%,80%{transform:translateX(2px);}
+  30%,50%,70%{transform:translateX(-4px);}
+  40%,60%{transform:translateX(4px);}
+}
+/* Signed-in cluster pops in when auth state lands. */
+.symptom-wizard .auth-user{animation:sw-pop .35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes sw-pop{
+  from{opacity:0;transform:scale(.7);}
+  to{opacity:1;transform:scale(1);}
+}
+/* Tiny inline spinner shown on buttons while a sign-in is in flight. */
+.symptom-wizard .auth-spinner{
+  width:13px;height:13px;flex-shrink:0;
+  border:2px solid currentColor;border-top-color:transparent;
+  border-radius:50%;
+  display:inline-block;
+  animation:symptom-wizard-spin .7s linear infinite;
 }
 .symptom-wizard .auth-btn:disabled{opacity:0.6;cursor:not-allowed;}
+.symptom-wizard .auth-avatar-fallback{
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;color:var(--ink);
+  border:1px solid var(--line);
+}
+
+/* Whole-page soft fade on view switches (wizard <-> auth page). */
+.symptom-wizard{animation:sw-page-fade .3s ease;}
+@keyframes sw-page-fade{from{opacity:0;}to{opacity:1;}}
+
+/* ---------- AUTH PAGE (full-screen sign-in / create account) ---------- */
+.symptom-wizard.auth-screen{
+  overflow-y:auto;
+  align-items:center;justify-content:center;
+  padding:24px clamp(16px, 4vw, 24px);
+  padding-top:max(24px, env(safe-area-inset-top));
+  padding-bottom:max(24px, env(safe-area-inset-bottom));
+}
+.symptom-wizard .auth-card{
+  width:min(420px, 100%);
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:clamp(24px, 5vw, 36px);
+  box-shadow:0 1px 2px rgba(0,0,0,.04), 0 24px 60px -30px rgba(0,0,0,.25);
+  animation:symptom-wizard-blockIn .5s cubic-bezier(.16,1,.3,1);
+}
+.dark .symptom-wizard .auth-card{box-shadow:none;}
+/* Content cascades in behind the card: each row fades/slides up with a
+   small stagger. `both` keeps rows hidden until their delay elapses.
+   Rows re-keyed on mode switch (title/sub) replay their step. */
+.symptom-wizard .auth-card > *{
+  animation:symptom-wizard-blockIn .5s cubic-bezier(.16,1,.3,1) both;
+}
+.symptom-wizard .auth-card > *:nth-child(1){animation-delay:.04s;}
+.symptom-wizard .auth-card > *:nth-child(2){animation-delay:.09s;}
+.symptom-wizard .auth-card > *:nth-child(3){animation-delay:.14s;}
+.symptom-wizard .auth-card > *:nth-child(4){animation-delay:.19s;}
+.symptom-wizard .auth-card > *:nth-child(5){animation-delay:.24s;}
+.symptom-wizard .auth-card > *:nth-child(6){animation-delay:.29s;}
+.symptom-wizard .auth-card > *:nth-child(7){animation-delay:.34s;}
+.symptom-wizard .auth-card > *:nth-child(8){animation-delay:.38s;}
+.symptom-wizard .auth-brand{margin-bottom:22px;}
+.symptom-wizard .auth-title{
+  font-family:'Newsreader',serif;
+  font-size:clamp(24px, 5vw, 30px);
+  font-weight:500;line-height:1.15;letter-spacing:-0.01em;
+  margin:0 0 8px 0;
+}
+.symptom-wizard .auth-title em{font-style:normal;color:var(--accent);font-weight:600;}
+.symptom-wizard .auth-sub{font-size:13.5px;color:var(--muted);line-height:1.55;margin:0 0 22px 0;}
+.symptom-wizard .auth-google-btn{
+  width:100%;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:11px 16px;
+  background:var(--paper);color:var(--ink);
+  border:1px solid var(--line);border-radius:12px;
+  font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;
+  cursor:pointer;
+  transition:border-color .2s ease, background .2s ease, transform .15s ease;
+}
+.symptom-wizard .auth-google-btn svg{width:17px;height:17px;flex-shrink:0;}
+.symptom-wizard .auth-google-btn:hover{border-color:var(--teal);background:var(--teal-soft);transform:translateY(-1px);}
+.symptom-wizard .auth-google-btn:active{transform:scale(.98);}
+.symptom-wizard .auth-google-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+.symptom-wizard .auth-google-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.symptom-wizard .auth-divider{
+  display:flex;align-items:center;gap:12px;
+  margin:18px 0;
+  color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;
+}
+.symptom-wizard .auth-divider::before,
+.symptom-wizard .auth-divider::after{content:'';flex:1;height:1px;background:var(--line);}
+.symptom-wizard .auth-form{display:grid;gap:14px;}
+.symptom-wizard .auth-field{display:block;animation:symptom-wizard-blockIn .35s cubic-bezier(.16,1,.3,1);}
+.symptom-wizard .auth-field > span{
+  display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;
+}
+.symptom-wizard .auth-field input{
+  width:100%;
+  padding:10px 12px;
+  background:var(--paper);color:var(--ink);
+  border:1px solid var(--line);border-radius:10px;
+  font-family:'Inter',sans-serif;font-size:14px;
+  outline:none;
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.symptom-wizard .auth-field input::placeholder{color:#7a7a7a;}
+.symptom-wizard .auth-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.symptom-wizard .auth-submit{
+  width:100%;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 16px;
+  background:var(--ink);color:var(--paper);
+  border:none;border-radius:12px;
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;
+  transition:background .2s ease, transform .15s ease;
+}
+.symptom-wizard .auth-submit:hover{background:var(--teal);}
+.symptom-wizard .auth-submit:active{transform:scale(.98);}
+.symptom-wizard .auth-submit:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+.symptom-wizard .auth-submit:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.symptom-wizard .auth-switch{font-size:13px;color:var(--muted);margin:16px 0 0 0;text-align:center;}
+.symptom-wizard .auth-switch button{
+  background:none;border:none;padding:0;
+  font:inherit;font-weight:600;color:var(--accent);
+  cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+}
+.symptom-wizard .auth-switch button:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+.symptom-wizard .auth-skip{
+  display:block;margin:20px auto 0 auto;
+  background:none;border:none;padding:4px 8px;
+  font-family:'Inter',sans-serif;font-size:12.5px;color:var(--muted);
+  cursor:pointer;
+  transition:color .2s ease;
+}
+.symptom-wizard .auth-skip:hover{color:var(--ink);}
+.symptom-wizard .auth-skip:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:6px;}
+.symptom-wizard .auth-foot{
+  margin-top:20px;
+  font-size:11.5px;color:var(--muted);text-align:center;max-width:420px;
+}
+@media (prefers-reduced-motion: reduce){
+  .symptom-wizard,
+  .symptom-wizard .auth-card,
+  .symptom-wizard .auth-card > *,
+  .symptom-wizard .auth-field,
+  .symptom-wizard .auth-error,
+  .symptom-wizard .auth-user,
+  .symptom-wizard .auth-spinner{animation:none;}
+}
 
 .symptom-wizard .journey{
   padding:16px 0 18px 0;
@@ -209,7 +413,7 @@
 }
 .symptom-wizard .journey-track{
   display:flex;align-items:center;
-  max-width:840px;margin:0 auto;
+  max-width:var(--content-max);margin:0 auto;
   padding:0 clamp(16px, 4vw, 24px);
   padding-left:max(clamp(16px, 4vw, 24px), env(safe-area-inset-left));
   padding-right:max(clamp(16px, 4vw, 24px), env(safe-area-inset-right));
@@ -237,14 +441,14 @@
 }
 .symptom-wizard .j-connector::after{
   content:'';position:absolute;inset:0;
-  background:var(--teal);
+  background:var(--accent);
   transform:scaleX(0);
   transform-origin:left;
   transition:transform .6s cubic-bezier(.65,0,.35,1);
 }
-.symptom-wizard .j-step.done .j-node{background:var(--teal);border-color:var(--teal);color:var(--paper);}
+.symptom-wizard .j-step.done .j-node{background:var(--accent);border-color:var(--accent);color:var(--paper);}
 .symptom-wizard .j-step.done .j-label{color:var(--ink);}
-.symptom-wizard .j-step.active .j-node{border-color:var(--teal);color:var(--teal);box-shadow:0 0 0 4px var(--teal-soft);}
+.symptom-wizard .j-step.active .j-node{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);}
 .symptom-wizard .j-step.active .j-label{color:var(--ink);font-weight:600;}
 .symptom-wizard .j-step.done + .j-connector::after{transform:scaleX(1);}
 
@@ -257,7 +461,7 @@
 .symptom-wizard .eyebrow{
   font-family:'IBM Plex Mono',monospace;
   font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
-  color:var(--teal);margin-bottom:8px;
+  color:var(--accent);margin-bottom:8px;
 }
 .symptom-wizard h1.hero-title{
   font-family:'Newsreader',serif;
@@ -269,7 +473,7 @@
   text-wrap:balance;
 }
 /* Emphasis stays upright — accent color + weight only, no slant. */
-.symptom-wizard h1.hero-title em{font-style:normal;color:var(--teal);font-weight:600;}
+.symptom-wizard h1.hero-title em{font-style:normal;color:var(--accent);font-weight:600;}
 .symptom-wizard .hero-sub{
   font-size:clamp(13.5px, 0.35vw + 12.5px, 15px);
   color:var(--muted);max-width:520px;line-height:1.6;margin-bottom:28px;
@@ -316,7 +520,7 @@
   cursor:pointer;
   transition:transform .15s cubic-bezier(.34,1.56,.64,1), border-color .15s ease, background .15s ease;
 }
-.symptom-wizard .example-chip:hover{border-color:var(--teal);background:var(--teal-soft);transform:translateY(-2px);}
+.symptom-wizard .example-chip:hover{border-color:var(--accent);background:var(--accent-soft);transform:translateY(-2px);}
 .symptom-wizard .example-chip:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
 
 .symptom-wizard .card-footer{
@@ -329,7 +533,7 @@
   display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);
   flex:1;min-width:180px;
 }
-.symptom-wizard .location-note svg{width:13px;height:13px;color:var(--teal);flex-shrink:0;}
+.symptom-wizard .location-note svg{width:13px;height:13px;color:var(--accent);flex-shrink:0;}
 .symptom-wizard .location-input{
   border:none;background:transparent;
   font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);
@@ -504,7 +708,6 @@
   .symptom-wizard .wrap{padding:0 16px 100px 16px;}
   .symptom-wizard .header-inner{padding:16px 16px;flex-direction:column;align-items:flex-start;}
   .symptom-wizard .header-actions{justify-content:flex-start;width:100%;margin-top:2px;}
-  .symptom-wizard .auth-email-form{right:auto;left:0;}
   .symptom-wizard .journey{padding:12px 0 16px 0;}
   .symptom-wizard .journey-track{padding:0 16px;}
   .symptom-wizard .card{padding:18px;}
@@ -649,9 +852,78 @@
 /* Hidden off-screen (not display:none, so the print engine can show it). */
 .symptom-wizard .doctor-summary{position:fixed;left:-200vw;top:0;width:100%;}
 
+/* ---------- LAPTOP/DESKTOP: SIDEBAR LAYOUT (≥1080px) ----------
+   The same header markup re-flows into a left rail (Claude/ChatGPT style):
+   brand on top, the journey as a vertical stepper, controls pinned to the
+   bottom. Phones and tablets below the breakpoint keep the sticky top bar. */
+@media (min-width:1080px){
+  .symptom-wizard{
+    /* Content sits beside a 264px rail; the wrap can use up to 1160px of it. */
+    --content-max:1160px;
+    flex-direction:row;
+  }
+  .symptom-wizard .sticky-top{
+    position:static;
+    width:264px;flex-shrink:0;
+    height:100%;
+    display:flex;flex-direction:column;
+    padding:20px 16px 16px 16px;
+    border-bottom:none;
+    border-right:1px solid var(--line);
+    background:var(--paper);
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+  /* The scrolled-state hairline/shadow/compression belong to the top-bar
+     form factor only. */
+  .symptom-wizard .sticky-top.is-scrolled,
+  .dark .symptom-wizard .sticky-top.is-scrolled{border-bottom:none;box-shadow:none;}
+  .symptom-wizard .scroll-progress{display:none;}
+  /* Flatten header wrappers so brand / journey / actions become rail rows
+     that can be reordered (journey between brand and bottom controls). */
+  .symptom-wizard .sticky-top header,
+  .symptom-wizard .sticky-top .header-inner{display:contents;}
+  .symptom-wizard .brand{order:1;padding:2px 6px;}
+  .symptom-wizard .journey{order:2;}
+  .symptom-wizard .header-actions{order:3;margin-top:auto;}
+  .symptom-wizard .sticky-top .journey,
+  .symptom-wizard .sticky-top.is-scrolled .journey{padding:30px 6px;}
+  /* Journey becomes a vertical stepper: connectors turn into short vertical
+     lines aligned under each node's center (node is 26px wide → 12px). */
+  .symptom-wizard .journey-track{
+    flex-direction:column;align-items:stretch;
+    max-width:none;padding:0;
+  }
+  .symptom-wizard .j-step{flex:0 0 auto;}
+  .symptom-wizard .j-connector{
+    flex:none;width:1.5px;height:22px;
+    margin:5px 0 5px 12px;
+  }
+  .symptom-wizard .j-connector::after{transform:scaleY(0);transform-origin:top;}
+  .symptom-wizard .j-step.done + .j-connector::after{transform:scaleY(1);}
+  /* Bottom controls stack full-width. */
+  .symptom-wizard .header-actions{
+    flex-direction:column;align-items:stretch;gap:8px;
+  }
+  .symptom-wizard .disclaimer-pill{
+    white-space:normal;border-radius:12px;
+    justify-content:flex-start;
+    margin-bottom:4px;
+  }
+  .symptom-wizard .header-actions .history-btn{width:100%;justify-content:center;}
+  .symptom-wizard .auth-widget,
+  .symptom-wizard .auth-actions,
+  .symptom-wizard .auth-user{width:100%;}
+  .symptom-wizard .auth-widget .auth-btn{width:100%;text-align:center;}
+  .symptom-wizard .auth-user{justify-content:flex-start;}
+  .symptom-wizard .auth-user .auth-btn{width:auto;margin-left:auto;}
+  .symptom-wizard .auth-user-name{max-width:none;flex:1;min-width:0;}
+}
+
 @media print{
   body{overflow:visible !important;}
-  .symptom-wizard{height:auto;overflow:visible;background:#fff;color:#000;}
+  .symptom-wizard{height:auto;overflow:visible;display:block;background:#fff;color:#000;}
+  .symptom-wizard .scroll-region{overflow:visible;}
   .symptom-wizard .sticky-top,
   .symptom-wizard .history-overlay,
   .symptom-wizard .wrap > *:not(.doctor-summary){display:none !important;}
