@@ -574,6 +574,23 @@ export default function SymptomWizard({ onOpenAuth }) {
         <span className="scroll-progress" aria-hidden="true" />
       </div>
 
+      {/* Desktop only (>=1080px): theme + sign-in float at the content's
+          top-right, like a chat app's account chip; the rail keeps the
+          disclaimer and History. Hidden below the breakpoint, where the
+          top header already shows both. */}
+      <div className="content-topbar">
+        <button
+          type="button"
+          className="history-btn theme-btn"
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={isDarkMode ? 'Light mode' : 'Dark mode'}
+        >
+          {isDarkMode ? <SunIcon /> : <MoonIcon />}
+        </button>
+        <FirebaseAuth onOpenAuth={onOpenAuth} />
+      </div>
+
       {/* Scrolling lives here (not on the wizard root) so the scrollbar
           starts below the header instead of running across it. */}
       <div className="scroll-region" ref={rootRef}>
