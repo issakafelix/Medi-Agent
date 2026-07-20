@@ -11,6 +11,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  updateProfile,
 } from 'firebase/auth';
 import { setFirebaseIdToken } from './apiService';
 
@@ -72,14 +73,38 @@ export async function signInWithGoogle() {
   return { user, token };
 }
 
-export async function signUpWithEmail(email, password) {
+export async function signUpWithEmail(email, password, displayName) {
   const a = initFirebase();
   if (!a) throw new Error('Firebase not initialized');
   const result = await createUserWithEmailAndPassword(a, email, password);
   const user = result.user;
+  if (displayName) {
+    try {
+      await updateProfile(user, { displayName });
+    } catch (e) {
+      // Account exists either way; a failed profile write shouldn't block sign-up.
+      console.warn('Failed to set display name', e);
+    }
+  }
   const token = await getIdToken(user, true);
   setFirebaseIdToken(token);
   return { user, token };
+}
+
+export const FRIENDLY_AUTH_ERRORS = {
+  'auth/wrong-password': 'Incorrect password.',
+  'auth/invalid-credential': 'Incorrect email or password.',
+  'auth/user-not-found': 'No account found with that email.',
+  'auth/email-already-in-use': 'An account with that email already exists — try signing in instead.',
+  'auth/invalid-email': 'Enter a valid email address.',
+  'auth/weak-password': 'Password should be at least 6 characters.',
+  'auth/network-request-failed': 'Network error — check your connection and try again.',
+  'auth/too-many-requests': 'Too many attempts. Please wait a moment and try again.',
+};
+
+export function friendlyAuthError(err) {
+  const code = err?.code || '';
+  return FRIENDLY_AUTH_ERRORS[code] || 'Sign-in failed. Please try again.';
 }
 
 export async function signInWithEmail(email, password) {
