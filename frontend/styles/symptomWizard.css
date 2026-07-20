@@ -867,6 +867,10 @@
     /* Anchor for the floating .content-topbar. */
     position:relative;
   }
+  /* Without a top header, the content column had nothing pushing it down
+     and the hero hugged the viewport's top edge. Give it real breathing
+     room so it stands on the page instead of pinning to the top. */
+  .symptom-wizard .wrap{padding-top:clamp(40px, 7vh, 88px);}
   .symptom-wizard .sticky-top{
     position:static;
     width:264px;flex-shrink:0;
