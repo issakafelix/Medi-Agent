@@ -100,10 +100,16 @@ export const FRIENDLY_AUTH_ERRORS = {
   'auth/weak-password': 'Password should be at least 6 characters.',
   'auth/network-request-failed': 'Network error — check your connection and try again.',
   'auth/too-many-requests': 'Too many attempts. Please wait a moment and try again.',
+  'auth/unauthorized-domain': 'This site is not authorized for sign-in yet. Please contact support.',
+  'auth/operation-not-allowed': 'This sign-in method is currently disabled.',
+  'auth/popup-blocked': 'Your browser blocked the sign-in popup — allow popups and try again.',
+  'auth/popup-closed-by-user': 'The sign-in window was closed before finishing.',
+  'auth/user-disabled': 'This account has been disabled.',
 };
 
 export function friendlyAuthError(err) {
   const code = err?.code || '';
+  console.error('Auth error:', code || err);
   return FRIENDLY_AUTH_ERRORS[code] || 'Sign-in failed. Please try again.';
 }
 
