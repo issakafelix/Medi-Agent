@@ -126,7 +126,7 @@ export default function ChatInput({
             disabled={isLoading || isListening}
             rows="1"
             style={{ maxHeight: '200px' }}
-            className={`w-full bg-transparent border-0 outline-none resize-none px-4 pt-4 pb-2 text-[16px] sm:text-[17px] text-[var(--text-main)] placeholder-[var(--text-muted)] disabled:opacity-50`}
+            className={`w-full bg-transparent border-0 outline-none resize-none px-4 pt-4 pb-2 text-base text-[var(--text-main)] placeholder-[var(--text-muted)] disabled:opacity-50`}
           />
 
           <div className="flex items-center justify-between mt-1 px-1">

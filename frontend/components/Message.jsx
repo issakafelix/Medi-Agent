@@ -64,7 +64,7 @@ export default function Message({
 
           {/* Message Bubble */}
           <div
-            className={`relative w-full px-1 py-1 text-[15px] sm:text-[16px] leading-relaxed break-words transition-all duration-300
+            className={`relative w-full px-1 py-1 text-base leading-relaxed break-words transition-all duration-300
               ${hasError ? 'border-l-2 border-red-500 pl-4' : ''}
               ${
                 isBot 
