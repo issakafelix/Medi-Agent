@@ -41,16 +41,16 @@
     @apply font-sans;
     /* Responsive base font size: every Tailwind rem-based size scales from this,
        so the whole UI grows proportionally on larger screens. */
-    font-size: 16px;
+    font-size: 17px;
     -webkit-text-size-adjust: 100%;
   }
 
   @media (min-width: 640px) {
-    html { font-size: 17px; }
+    html { font-size: 18px; }
   }
 
   @media (min-width: 1280px) {
-    html { font-size: 18px; }
+    html { font-size: 19px; }
   }
 
   body {
