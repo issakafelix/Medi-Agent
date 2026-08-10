@@ -539,7 +539,7 @@
 .symptom-wizard .location-note svg{width:13px;height:13px;color:var(--accent);flex-shrink:0;}
 .symptom-wizard .location-input{
   border:none;background:transparent;
-  font-family:'Inter',sans-serif;font-size:15.5px;color:var(--ink);
+  font-family:'Inter',sans-serif;font-size:16px;color:var(--ink);
   width:100%;min-width:0;padding:8px 0;
 }
 .symptom-wizard .location-input::placeholder{color:var(--muted);}
@@ -709,10 +709,17 @@
 
 @media (max-width:768px){
   .symptom-wizard .wrap{padding:0 16px 100px 16px;}
-  .symptom-wizard .header-inner{padding:16px 16px;flex-direction:column;align-items:flex-start;}
-  .symptom-wizard .header-actions{justify-content:flex-start;width:100%;margin-top:2px;}
-  .symptom-wizard .journey{padding:12px 0 16px 0;}
+  /* One compact row: brand left, actions right. The old stacked layout
+     (brand row + full-width actions row) cost ~3 rows of sticky header. */
+  .symptom-wizard .header-inner{padding:10px 16px;}
+  .symptom-wizard .header-actions{flex-wrap:nowrap;gap:8px;}
+  /* The same disclaimer already lives in the assessment card and footer;
+     in the mobile header it cost a whole extra line. */
+  .symptom-wizard .disclaimer-pill{display:none;}
+  .symptom-wizard .journey{padding:8px 0 10px 0;}
+  .symptom-wizard .sticky-top.is-scrolled .journey{padding:5px 0 7px 0;}
   .symptom-wizard .journey-track{padding:0 16px;}
+  .symptom-wizard .sticky-top.is-scrolled .header-inner{padding-top:7px;padding-bottom:7px;}
   .symptom-wizard .card{padding:18px;}
   .symptom-wizard .card-footer{flex-direction:column;align-items:stretch;gap:12px;}
   .symptom-wizard .analyze-btn{justify-content:center;}
@@ -723,24 +730,33 @@
   .symptom-wizard .j-step{gap:6px;}
   .symptom-wizard .j-node{width:22px;height:22px;font-size:12px;}
   .symptom-wizard .j-connector{margin:0;}
+  /* Brand slims to logo + name; the tagline returns on bigger screens. */
+  .symptom-wizard .brand-tag{display:none;}
+  .symptom-wizard .brand-name{font-size:20px;}
+  .symptom-wizard .brand-mark{width:24px;height:24px;}
+  .symptom-wizard .brand{gap:8px;}
   .symptom-wizard h1.hero-title{font-size:32.5px;}
   .symptom-wizard .hero-sub{font-size:16px;margin-bottom:22px;}
   .symptom-wizard .example-chip{font-size:13px;padding:5px 10px;}
   .symptom-wizard .analyze-btn,.symptom-wizard .advance-btn{width:100%;justify-content:center;}
-  .symptom-wizard .header-actions{gap:8px;}
-  .symptom-wizard .disclaimer-pill{font-size:12px;padding:5px 10px;}
-  .symptom-wizard .history-btn{font-size:14px;padding:6px 11px;}
-  .symptom-wizard .theme-btn{padding:6px 9px;}
+  .symptom-wizard .header-actions{gap:6px;}
+  /* History and theme become icon-only round buttons. */
+  .symptom-wizard .history-btn span{display:none;}
+  .symptom-wizard .history-btn{padding:8px;}
+  .symptom-wizard .theme-btn{padding:8px;}
+  /* Signed-in: avatar + sign out; the name needs more room than a phone has. */
+  .symptom-wizard .auth-user-name{display:none;}
   .symptom-wizard .hospital-map{height:180px;}
   .symptom-wizard .emergency-banner{padding:14px 16px;}
   .symptom-wizard .emergency-call{display:block;text-align:center;}
 }
 
 @media (max-width:400px){
-  .symptom-wizard .brand-name{font-size:20.5px;}
+  .symptom-wizard .header-inner{padding:8px 12px;}
+  .symptom-wizard .journey-track{padding:0 12px;}
+  .symptom-wizard .brand-name{font-size:19px;}
   .symptom-wizard h1.hero-title{font-size:27.5px;}
   .symptom-wizard .auth-btn{padding:6px 11px;font-size:14px;}
-  .symptom-wizard .auth-user-name{max-width:88px;}
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -1105,7 +1121,8 @@
   padding:11px 18px;
   border:1px solid var(--line);border-radius:100px;
   background:var(--paper);color:var(--ink);
-  font-family:'Inter',sans-serif;font-size:15.5px;
+  /* ≥16px: below that, iOS Safari auto-zooms the page when the input focuses. */
+  font-family:'Inter',sans-serif;font-size:16px;
   outline:none;
   transition:border-color .2s ease, box-shadow .2s ease;
 }
