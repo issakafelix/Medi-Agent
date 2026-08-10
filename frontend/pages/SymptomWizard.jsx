@@ -67,6 +67,30 @@ const MoonIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>
 );
 
+function ReferencePills({ refs }) {
+  if (!refs?.length) return null;
+  return (
+    <div className="ref-block">
+      <div className="ref-title">Medical references</div>
+      <div className="ref-row">
+        {refs.map((r) => (
+          <a
+            key={`${r.org}-${r.topic}`}
+            className="ref-pill"
+            href={r.url}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            <span className="ref-org">{r.org}</span>
+            <span className="ref-topic">{r.topic}</span>
+          </a>
+        ))}
+      </div>
+      <div className="ref-note">Links open each organization&rsquo;s own page on the topic — verify anything important with a clinician.</div>
+    </div>
+  );
+}
+
 export default function SymptomWizard({ onOpenAuth }) {
   const [isDarkMode, setIsDarkMode] = useDarkMode();
   const [step, setStep] = useState(1);
@@ -85,6 +109,11 @@ export default function SymptomWizard({ onOpenAuth }) {
   // Pull the trailing "References:" line out of the assessment so it renders
   // as linked source pills instead of raw text.
   const { body: assessmentBody, refs: assessmentRefs } = splitReferences(assessment);
+  // Follow-up Q&A: the conversation id keeps context server-side, so follow-up
+  // questions are answered against the symptoms already described.
+  const [followUps, setFollowUps] = useState([]);
+  const [followUpText, setFollowUpText] = useState('');
+  const [followUpLoading, setFollowUpLoading] = useState(false);
 
   // History panel
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -269,6 +298,7 @@ export default function SymptomWizard({ onOpenAuth }) {
     setAssessment('');
     setAssessmentMsgId(null);
     setAssessmentRating(0);
+    setFollowUps([]);
     try {
       const res = await callChatStream(text, (partial) => {
         setAssessment(partial);
@@ -318,6 +348,28 @@ export default function SymptomWizard({ onOpenAuth }) {
       await rateMessage(assessmentMsgId, next);
     } catch (e) {
       // Rating is non-critical; ignore failures silently.
+    }
+  }
+
+  async function handleFollowUp() {
+    const q = followUpText.trim();
+    if (!q || followUpLoading) return;
+    setError('');
+    setFollowUpText('');
+    setFollowUpLoading(true);
+    setFollowUps((list) => [...list, { q, a: '' }]);
+    const patchLast = (a) =>
+      setFollowUps((list) => list.map((f, i) => (i === list.length - 1 ? { ...f, a } : f)));
+    try {
+      const res = await callChatStream(q, patchLast);
+      patchLast(res.reply);
+    } catch (err) {
+      // Drop the empty entry and restore the question so it can be retried.
+      setFollowUps((list) => list.slice(0, -1));
+      setFollowUpText(q);
+      setError(err?.message || 'Could not reach MediAgent. Please try again.');
+    } finally {
+      setFollowUpLoading(false);
     }
   }
 
@@ -682,26 +734,7 @@ export default function SymptomWizard({ onOpenAuth }) {
               <div className="section-title">MediAgent&rsquo;s assessment</div>
               <div className="section-desc">Based on what you described. Not a diagnosis — a starting point.</div>
               <div className="reply-text">{formatReply(assessmentBody)}</div>
-              {assessmentRefs.length > 0 && (
-                <div className="ref-block">
-                  <div className="ref-title">Medical references</div>
-                  <div className="ref-row">
-                    {assessmentRefs.map((r) => (
-                      <a
-                        key={`${r.org}-${r.topic}`}
-                        className="ref-pill"
-                        href={r.url}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                      >
-                        <span className="ref-org">{r.org}</span>
-                        <span className="ref-topic">{r.topic}</span>
-                      </a>
-                    ))}
-                  </div>
-                  <div className="ref-note">Links open each organization&rsquo;s own page on the topic — verify anything important with a clinician.</div>
-                </div>
-              )}
+              <ReferencePills refs={assessmentRefs} />
               {assessmentMsgId != null && loadingStage !== 'analyze' && (
                 <div className="rate-row">
                   <span>Was this helpful?</span>
@@ -719,6 +752,43 @@ export default function SymptomWizard({ onOpenAuth }) {
                     aria-label="Not helpful"
                     aria-pressed={assessmentRating === -1}
                   >👎</button>
+                </div>
+              )}
+              {loadingStage !== 'analyze' && assessment && (
+                <div className="followup-block">
+                  <div className="followup-title">Ask a follow-up</div>
+                  {followUps.map((f, i) => {
+                    const parsed = splitReferences(f.a);
+                    return (
+                      <div key={i} className="followup-item">
+                        <div className="followup-q">{f.q}</div>
+                        <div className="reply-text">
+                          {f.a ? formatReply(parsed.body) : <p className="followup-pending">Thinking…</p>}
+                        </div>
+                        <ReferencePills refs={parsed.refs} />
+                      </div>
+                    );
+                  })}
+                  <div className="followup-inputrow">
+                    <input
+                      type="text"
+                      className="followup-input"
+                      value={followUpText}
+                      onChange={(e) => setFollowUpText(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleFollowUp(); }}
+                      placeholder="Ask anything about this assessment…"
+                      aria-label="Ask a follow-up question about this assessment"
+                      disabled={followUpLoading}
+                    />
+                    <button
+                      type="button"
+                      className="followup-send"
+                      onClick={handleFollowUp}
+                      disabled={followUpLoading || !followUpText.trim()}
+                    >
+                      {followUpLoading ? 'Thinking…' : 'Ask'}
+                    </button>
+                  </div>
                 </div>
               )}
               <button className="advance-btn" onClick={handleFirstAid} disabled={loadingStage === 'aid'}>
