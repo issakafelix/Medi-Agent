@@ -3,6 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { sendMessage, streamMessage, rateMessage, getConversations, getConversation, geocodeLocation, findNearbyHospitals } from '../services/apiService';
 import { formatReply } from '../utils/formatReply';
+import { splitReferences } from '../utils/references';
 import { useDarkMode } from '../hooks/useCustomHooks';
 import FirebaseAuth from '../components/FirebaseAuth';
 import '../styles/symptomWizard.css';
@@ -81,6 +82,9 @@ export default function SymptomWizard({ onOpenAuth }) {
   const [redFlags, setRedFlags] = useState([]);
   const [assessmentMsgId, setAssessmentMsgId] = useState(null);
   const [assessmentRating, setAssessmentRating] = useState(0);
+  // Pull the trailing "References:" line out of the assessment so it renders
+  // as linked source pills instead of raw text.
+  const { body: assessmentBody, refs: assessmentRefs } = splitReferences(assessment);
 
   // History panel
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -677,7 +681,27 @@ export default function SymptomWizard({ onOpenAuth }) {
             <div className="card">
               <div className="section-title">MediAgent&rsquo;s assessment</div>
               <div className="section-desc">Based on what you described. Not a diagnosis — a starting point.</div>
-              <div className="reply-text">{formatReply(assessment)}</div>
+              <div className="reply-text">{formatReply(assessmentBody)}</div>
+              {assessmentRefs.length > 0 && (
+                <div className="ref-block">
+                  <div className="ref-title">Medical references</div>
+                  <div className="ref-row">
+                    {assessmentRefs.map((r) => (
+                      <a
+                        key={`${r.org}-${r.topic}`}
+                        className="ref-pill"
+                        href={r.url}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                      >
+                        <span className="ref-org">{r.org}</span>
+                        <span className="ref-topic">{r.topic}</span>
+                      </a>
+                    ))}
+                  </div>
+                  <div className="ref-note">Links open each organization&rsquo;s own page on the topic — verify anything important with a clinician.</div>
+                </div>
+              )}
               {assessmentMsgId != null && loadingStage !== 'analyze' && (
                 <div className="rate-row">
                   <span>Was this helpful?</span>

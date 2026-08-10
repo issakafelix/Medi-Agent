@@ -1049,3 +1049,33 @@
   .symptom-wizard .hospital:hover,
   .symptom-wizard .theme-btn:hover{transform:none;}
 }
+
+/* ---------- MEDICAL REFERENCES (linked institutional sources under the assessment) ---------- */
+.symptom-wizard .ref-block{
+  margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);
+  animation:symptom-wizard-blockIn .5s cubic-bezier(.16,1,.3,1) both;
+}
+.symptom-wizard .ref-title{
+  font-size:13px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;
+}
+.symptom-wizard .ref-row{display:flex;gap:8px;flex-wrap:wrap;}
+.symptom-wizard .ref-pill{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 13px;border:1px solid var(--line);border-radius:100px;
+  background:var(--paper);text-decoration:none;
+  font-family:'Inter',sans-serif;font-size:14px;line-height:1.2;
+  transition:border-color .2s ease, background .2s ease, transform .2s ease;
+}
+.symptom-wizard .ref-pill:hover{
+  border-color:var(--accent);background:var(--accent-soft);transform:translateY(-2px);
+}
+.symptom-wizard .ref-pill:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+.symptom-wizard .ref-org{font-weight:700;color:var(--accent);}
+.symptom-wizard .ref-topic{color:var(--ink);}
+.symptom-wizard .ref-note{margin-top:10px;font-size:12.5px;color:var(--muted);line-height:1.5;}
+@media (prefers-reduced-motion: reduce){
+  .symptom-wizard .ref-block{animation:none;}
+  .symptom-wizard .ref-pill{transition:none;}
+  .symptom-wizard .ref-pill:hover{transform:none;}
+}
