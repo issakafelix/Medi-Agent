@@ -951,3 +951,98 @@
   .symptom-wizard .doctor-summary .ds-meta{color:#444;font-size:10pt;margin:0 0 8px 0;}
   .symptom-wizard .doctor-summary .ds-foot{margin-top:20px;padding-top:8px;border-top:1px solid #999;color:#444;font-size:10pt;}
 }
+
+/* ---------- ANIMATION PASS: entrance cascades + micro-interactions ---------- */
+
+/* Hero entrance: eyebrow → title → sub → input card cascade on first paint. */
+.symptom-wizard .wrap > section:first-of-type > *{
+  animation:symptom-wizard-blockIn .6s cubic-bezier(.16,1,.3,1) both;
+}
+.symptom-wizard .wrap > section:first-of-type > *:nth-child(1){animation-delay:.05s;}
+.symptom-wizard .wrap > section:first-of-type > *:nth-child(2){animation-delay:.14s;}
+.symptom-wizard .wrap > section:first-of-type > *:nth-child(3){animation-delay:.23s;}
+.symptom-wizard .wrap > section:first-of-type > *:nth-child(4){animation-delay:.32s;}
+
+/* Example chips pop in one at a time once the card has landed. */
+.symptom-wizard .example-chip{
+  animation:sw-chip-pop .45s cubic-bezier(.34,1.56,.64,1) both;
+}
+.symptom-wizard .example-chip:nth-child(1){animation-delay:.5s;}
+.symptom-wizard .example-chip:nth-child(2){animation-delay:.58s;}
+.symptom-wizard .example-chip:nth-child(3){animation-delay:.66s;}
+.symptom-wizard .example-chip:nth-child(4){animation-delay:.74s;}
+.symptom-wizard .example-chip:nth-child(5){animation-delay:.82s;}
+.symptom-wizard .example-chip:nth-child(6){animation-delay:.9s;}
+@keyframes sw-chip-pop{
+  from{opacity:0;transform:translateY(8px) scale(.92);}
+  60%{opacity:1;transform:translateY(-2px) scale(1.03);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}
+.symptom-wizard .example-chip:active{transform:translateY(0) scale(.95);}
+
+/* Active journey step breathes so you always know where you are. */
+.symptom-wizard .j-step.active .j-node{animation:sw-node-pulse 2.2s ease-in-out infinite;}
+@keyframes sw-node-pulse{
+  0%,100%{box-shadow:0 0 0 4px var(--accent-soft);}
+  50%{box-shadow:0 0 0 9px transparent;}
+}
+
+/* Cards lift softly under the pointer. */
+.symptom-wizard .card{transition:transform .3s ease, box-shadow .3s ease;}
+.symptom-wizard .card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 2px 4px rgba(0,0,0,.04), 0 20px 44px -26px rgba(0,0,0,.3);
+}
+.dark .symptom-wizard .card:hover{box-shadow:none;}
+
+/* Primary action: lift on hover, press on click. */
+.symptom-wizard .analyze-btn{transition:transform .2s ease, box-shadow .25s ease, opacity .2s ease;}
+.symptom-wizard .analyze-btn:hover:not(:disabled){
+  transform:translateY(-2px);
+  box-shadow:0 12px 26px -14px var(--accent);
+}
+.symptom-wizard .analyze-btn:active:not(:disabled){transform:translateY(0) scale(.97);box-shadow:none;}
+.symptom-wizard .advance-btn:active:not(:disabled){transform:translateY(0) scale(.97);}
+
+/* Hospitals slide in one after another, nudge right on hover. */
+.symptom-wizard .hospital{
+  animation:symptom-wizard-blockIn .5s cubic-bezier(.16,1,.3,1) both;
+  transition:transform .25s ease;
+}
+.symptom-wizard .hospital:nth-child(1){animation-delay:.05s;}
+.symptom-wizard .hospital:nth-child(2){animation-delay:.13s;}
+.symptom-wizard .hospital:nth-child(3){animation-delay:.21s;}
+.symptom-wizard .hospital:nth-child(4){animation-delay:.29s;}
+.symptom-wizard .hospital:nth-child(5){animation-delay:.37s;}
+.symptom-wizard .hospital:hover{transform:translateX(4px);}
+
+/* Emergency banner: slide in, then a soft red pulse to hold attention. */
+.symptom-wizard .emergency-banner{
+  animation:symptom-wizard-blockIn .5s cubic-bezier(.16,1,.3,1) both,
+            sw-emergency-glow 2.4s ease-in-out .6s infinite;
+}
+@keyframes sw-emergency-glow{
+  0%,100%{box-shadow:0 0 0 0 rgba(194,59,49,0);}
+  50%{box-shadow:0 0 0 7px rgba(194,59,49,.14);}
+}
+
+/* Theme toggle gives a playful tilt. */
+.symptom-wizard .theme-btn{transition:transform .35s cubic-bezier(.34,1.56,.64,1), background .2s ease;}
+.symptom-wizard .theme-btn:hover{transform:rotate(18deg) scale(1.1);}
+
+/* Respect reduced-motion for everything above. */
+@media (prefers-reduced-motion: reduce){
+  .symptom-wizard .wrap > section:first-of-type > *,
+  .symptom-wizard .example-chip,
+  .symptom-wizard .j-step.active .j-node,
+  .symptom-wizard .hospital,
+  .symptom-wizard .emergency-banner{animation:none !important;}
+  .symptom-wizard .card,
+  .symptom-wizard .analyze-btn,
+  .symptom-wizard .hospital,
+  .symptom-wizard .theme-btn{transition:none;}
+  .symptom-wizard .card:hover,
+  .symptom-wizard .analyze-btn:hover:not(:disabled),
+  .symptom-wizard .hospital:hover,
+  .symptom-wizard .theme-btn:hover{transform:none;}
+}
