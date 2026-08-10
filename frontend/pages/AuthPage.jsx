@@ -69,9 +69,7 @@ export default function AuthPage({ onDone }) {
           onClick={onDone}
           aria-label="Back to MediAgent"
         >
-          <svg className="brand-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M2 12h4l2-7 4 14 2-9 2 5h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <img className="brand-mark" src="/icon-192.png" alt="" aria-hidden="true" />
           <span className="brand-name">MediAgent</span>
         </button>
 
