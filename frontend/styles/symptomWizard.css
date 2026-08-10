@@ -158,13 +158,16 @@
 /* The logo is a button: clicking it refreshes the app (fresh start). */
 .symptom-wizard .brand{
   display:flex;align-items:center;gap:10px;min-width:0;
-  background:none;border:none;padding:0;margin:0;
+  background:none;border:none;
+  /* Padding + negative margin: room for the hover pill without shifting layout. */
+  padding:6px 10px;margin:-6px -10px;
+  border-radius:12px;
   font:inherit;color:inherit;text-align:left;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
-  transition:transform .2s cubic-bezier(.34,1.56,.64,1), opacity .25s ease;
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1), opacity .25s ease, background .2s ease;
 }
-.symptom-wizard .brand:hover{transform:translateY(-1px);}
+.symptom-wizard .brand:hover{transform:translateY(-1px);background:var(--accent-soft);}
 .symptom-wizard .brand:active{transform:translateY(0) scale(.97);}
 .symptom-wizard .brand:focus-visible{outline:2px solid var(--teal);outline-offset:4px;border-radius:8px;}
 .symptom-wizard .brand > div{min-width:0;}
@@ -553,7 +556,7 @@
   flex-shrink:0;
   min-height:40px;
 }
-.symptom-wizard .analyze-btn:hover{background:var(--teal);}
+.symptom-wizard .analyze-btn:hover:not(:disabled){background:var(--accent);color:#ffffff;}
 .symptom-wizard .analyze-btn:active{transform:scale(0.96);}
 .symptom-wizard .analyze-btn:disabled{opacity:0.6;cursor:not-allowed;}
 .symptom-wizard .analyze-btn svg{width:14px;height:14px;transition:transform .3s ease;}
